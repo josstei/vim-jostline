@@ -23,11 +23,12 @@ let g:mode_map = {
 			\ 'a': 'ARGUMENT', 
 			\}
 
+
 let g:statusline_config = {
 			\ 'left': {
-			\   'section_1': { 'items': ['windowNumber'], 'highlight': {'bg': '#c678dd', 'fg': ''} },
-			\   'section_2': { 'items': ['mode'],         'highlight': {'bg': '#c678dd', 'fg': ''} },
-			\   'section_3': { 'items': ['fileName'],     'highlight': {'bg': '#c678dd', 'fg': ''} },
+			\   'section_1': { 'items': ['windowNumber'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+			\   'section_2': { 'items': ['mode'],         'highlight': {'bg': '#4b2a55', 'fg': '#efd7f6'} },
+			\   'section_3': { 'items': ['fileName'],     'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
 			\   'separator': '',
 			\   'side': 'LEFT'
 			\ },
@@ -42,7 +43,7 @@ let g:statusline_config = {
 
 function! jostline#set() abort
 	set statusline=%!g:jostline#build()
-	call s:setSectionHighlights()
+  	call s:setDynamicSectionHighlights()
 endfunction
 
 function! g:jostline#build()
@@ -89,7 +90,8 @@ function! s:getItemValue(item)
 		\ 'mode':         s:getMode(),
 		\ 'fileName':     s:getFilename(),
 		\ 'fileType':     s:getFiletype(),
-		\ 'windowNumber': s:getWindowNumber()
+		\ 'windowNumber': s:getWindowNumber(),
+		\ 'modified':     s:getModified()
 		\ }
 	return has_key(l:itemValueMap, a:item) ? l:itemValueMap[a:item] : v:null 
 endfunction
@@ -142,20 +144,30 @@ function! s:appendSeparatorHighlight(name,separator,side)
 	return '%#'.a:name.'_'.a:side.'_separator#'.a:separator.'%*'		
 endfunction
 
-function! s:setSectionHighlights()
-	let fg_color = '#000000'
-	let bg_color = '#c678dd'
+
+function! s:parseHighlightMap(map,key,default)
+	let l:value = get(a:map,a:key,a:default)
+	return l:value == '' ? a:default : l:value
+endfunction
+
+function! s:setDynamicSectionHighlights()
+	let l:cfg = deepcopy(g:statusline_config)
+	let l:sections = s:getSections(l:cfg.left)
+	" not used yet
 	let style = 'bold'
 
-	let hl_cmd = printf('highlight Section_1_Left guifg=%s guibg=%s gui=%s', fg_color, bg_color, style)
-	execute hl_cmd
+	for [name, data] in items(l:sections)
+		let l:foreground = s:parseHighlightMap(data.highlight,'fg','#ffffff')
+		let l:background = s:parseHighlightMap(data.highlight,'bg','#000000')
 
-	execute 'highlight Section_1_Left_Separator guifg=#c678dd guibg=#4b2a55'
-	execute 'highlight Section_2_Left guifg=#efd7f6 guibg=#4b2a55'
-	execute 'highlight Section_2_Left_Separator guifg=#4b2a55 guibg=#333333'
-	execute 'highlight Section_3_Left guifg=#ffffff guibg=#333333'
-	execute 'highlight Section_3_Left_Separator guifg=#333333 guibg=#333333'
-	execute 'highlight Section_1_Right guifg=#000000 guibg=#2a9df4'
-	execute 'highlight Section_2_Right guifg=#000000 guibg=#2a9df4'
-	execute 'highlight Section_3_Right guifg=#000000 guibg=#2a9df4'
+		let l:cmdSeparatorHighlight = printf('highlight %s_%s_separator guifg=%s guibg=%s',name, 'left', l:foreground, l:background)
+		let l:cmdSectionHighlight = printf('highlight %s_%s guifg=%s guibg=%s',name, 'left', l:foreground, l:background)
+
+ 		execute l:cmdSeparatorHighlight
+ 		execute l:cmdSectionHighlight
+	endfor
 endfunction
+
+
+
+
