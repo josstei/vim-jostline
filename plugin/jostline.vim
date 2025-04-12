@@ -40,20 +40,12 @@ let g:statusline_config = {
 			\ }
 			\}
 
-augroup StatusLineOverrides
-	autocmd!
-	autocmd ColorScheme * highlight Section_1_Left 			 guifg=#000000 guibg=#c678dd
-	autocmd ColorScheme * highlight Section_1_Left_Separator guifg=#c678dd guibg=#4b2a55
-	autocmd ColorScheme * highlight Section_2_Left 			 guifg=#efd7f6 guibg=#4b2a55
-	autocmd ColorScheme * highlight Section_2_Left_Separator guifg=#4b2a55 guibg=#333333
-	autocmd ColorScheme * highlight Section_3_Left 			 guifg=#ffffff guibg=#333333
-	autocmd ColorScheme * highlight Section_3_Left_Separator guifg=#333333 guibg=#333333 
-	autocmd ColorScheme * highlight Section_1_Right guifg=#000000 guibg=#2a9df4
-	autocmd ColorScheme * highlight Section_2_Right guifg=#000000 guibg=#2a9df4
-	autocmd ColorScheme * highlight Section_3_Right guifg=#000000 guibg=#2a9df4
-augroup END
+function! jostline#set() abort
+	set statusline=%!g:jostline#build()
+	call s:setSectionHighlights()
+endfunction
 
-function! SL_Set()
+function! g:jostline#build()
 	let is_active = g:statusline_winid == win_getid()
 	let cfg = deepcopy(g:statusline_config)
 
@@ -69,58 +61,58 @@ function! SL_Set()
 		endif
 	endif
 
-  return ''.ParseSectionGroup(cfg.left).'%='.ParseSectionGroup(cfg.right).' '
+  return ''.s:parseSectionGroup(cfg.left).'%='.s:parseSectionGroup(cfg.right).' '
 endfunction
 
-function! GetMode() 
+function! s:getMode() 
 	return get(g:mode_map, mode(), 'UNKNOWN MODE')
 endfunction
 
-function! GetFilename() 
+function! s:getFilename() 
 	return expand('%:t') ==# '' ? '[No Name]' : expand('%:t') 
 endfunction
 
-function! GetFiletype() 
+function! s:getFiletype() 
 	return '%{&filetype}'
 endfunction
 
-function! GetWindowNumber() 
+function! s:getWindowNumber() 
 	return '%{winnr()}'
 endfunction
 
-function! GetModified() 
+function! s:getModified() 
 	return &modified ? '[+]' : ''
 endfunction
 
-function! GetItemValue(item)
+function! s:getItemValue(item)
 	let l:itemValueMap = {
-		\ 'mode':         GetMode(),
-		\ 'fileName':     GetFilename(),
-		\ 'fileType':     GetFiletype(),
-		\ 'windowNumber': GetWindowNumber()
+		\ 'mode':         s:getMode(),
+		\ 'fileName':     s:getFilename(),
+		\ 'fileType':     s:getFiletype(),
+		\ 'windowNumber': s:getWindowNumber()
 		\ }
 	return has_key(l:itemValueMap, a:item) ? l:itemValueMap[a:item] : v:null 
 endfunction
 
-function! ParseSectionItems(items)
-	let l:itemValues = filter(map(copy(a:items),'GetItemValue(v:val)'), 'v:val !=v:null' )
+function! s:parseSectionItems(items)
+	let l:itemValues = filter(map(copy(a:items),'s:getItemValue(v:val)'), 'v:val !=v:null' )
 	return empty(l:itemValues) ? v:null : join(l:itemValues, '')
 endfunction
 
-function! GetSections(map)
+function! s:getSections(map)
 	return filter(copy(a:map), 'v:key =~# "^section_\\d\\+$"')
 endfunction
 
-function! ParseSectionGroup(map)
+function! s:parseSectionGroup(map)
 	let l:groupMap = a:map
-  	let l:sections = GetSections(l:groupMap)
+  	let l:sections = s:getSections(l:groupMap)
   	let l:separator = l:groupMap ->get('separator','')
 	let l:side = l:groupMap ->get('side','')
 	let l:parts = []
 
 	for [name, data] in items(l:sections)
-	   	let l:itemsStr = ParseSectionItems(data.items)
-		let l:highlighted = AppendHighlights(name, l:itemsStr, l:side, l:separator)
+	   	let l:itemsStr = s:parseSectionItems(data.items)
+		let l:highlighted = s:appendHighlights(name, l:itemsStr, l:side, l:separator)
 
 		if l:highlighted != v:null
 			call add(l:parts,l:highlighted)
@@ -129,43 +121,41 @@ function! ParseSectionGroup(map)
   return empty(l:parts) ? '' : join(l:parts, '')
 endfunction
 
-function! AppendHighlights(name,items,side,separator) 
+function! s:appendHighlights(name,items,side,separator) 
 	if a:items == v:null 
 		return a:items
 	endif
 
-	let l:items = AppendItemHighlight(a:name,a:items,a:side)
-	let l:separator = AppendSeparatorHighlight(a:name,a:separator,a:side) 
+	let l:items = s:appendItemHighlight(a:name,a:items,a:side)
+	let l:separator = s:appendSeparatorHighlight(a:name,a:separator,a:side) 
 
 	return  a:side == 'LEFT'  ? l:items.l:separator:
 		   \a:side == 'RIGHT' ? l:separator.l:items:
 		   \v:null
 endfunction
 
-function! AppendItemHighlight(name,items,side) 
+function! s:appendItemHighlight(name,items,side) 
 	return '%#'.a:name.'_'.a:side.'# '.a:items.'%*'		
 endfunction
 
-function! AppendSeparatorHighlight(name,separator,side) 
+function! s:appendSeparatorHighlight(name,separator,side) 
 	return '%#'.a:name.'_'.a:side.'_separator#'.a:separator.'%*'		
 endfunction
 
-function! TestSectionHighlights()
+function! s:setSectionHighlights()
 	let fg_color = '#000000'
 	let bg_color = '#c678dd'
-   	let style = 'bold'
-	" testing for just section 1 for now
+	let style = 'bold'
+
 	let hl_cmd = printf('highlight Section_1_Left guifg=%s guibg=%s gui=%s', fg_color, bg_color, style)
-
 	execute hl_cmd
+
+	execute 'highlight Section_1_Left_Separator guifg=#c678dd guibg=#4b2a55'
+	execute 'highlight Section_2_Left guifg=#efd7f6 guibg=#4b2a55'
+	execute 'highlight Section_2_Left_Separator guifg=#4b2a55 guibg=#333333'
+	execute 'highlight Section_3_Left guifg=#ffffff guibg=#333333'
+	execute 'highlight Section_3_Left_Separator guifg=#333333 guibg=#333333'
+	execute 'highlight Section_1_Right guifg=#000000 guibg=#2a9df4'
+	execute 'highlight Section_2_Right guifg=#000000 guibg=#2a9df4'
+	execute 'highlight Section_3_Right guifg=#000000 guibg=#2a9df4'
 endfunction
-
-set statusline=%!SL_Set()
-
-augroup StatusLine
-	autocmd!
-	autocmd ColorScheme * call TestSectionHighlights()
-augroup END
-
-
-
