@@ -25,21 +25,37 @@ let g:mode_map = {
 
 
 let g:statusline_config = {
-			\ 'left': {
-			\   'section_1': { 'items': ['windowNumber'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
-			\   'section_2': { 'items': ['mode'],         'highlight': {'bg': '#4b2a55', 'fg': '#efd7f6'} },
-			\   'section_3': { 'items': ['fileName'],     'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
-			\   'separator': '',
-			\   'side': 'LEFT'
-			\ },
-			\ 'right': {
-			\   'section_1': { 'items': ['someOtherItem'], 'highlight': {'bg': '#c678dd', 'fg': ''} },
-			\   'section_2': { 'items': ['anotherItem'],   'highlight': {'bg': '#c678dd', 'fg': ''} },
-			\   'section_3': { 'items': ['yetAnotherItem'],  'highlight': {'bg': '#c678dd', 'fg': ''} },
-			\   'separator': '',
-			\   'side': 'RIGHT'
-			\ }
-			\}
+      \ 'left': {
+      \   'section_1': {
+      \     'active':   { 'items': ['windowNumber'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'inactive': { 'items': ['windowNumber'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \   },
+      \   'section_2': {
+      \     'active':   { 'items': ['mode'], 'highlight': {'bg': '#4b2a55', 'fg': '#efd7f6'} },
+      \     'inactive': { 'items': [''], 'highlight': {'bg': '#3a2d3f', 'fg': '#a3a3a3'} }
+      \   },
+      \   'section_3': {
+      \     'active':   { 'items': ['fileName'], 'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
+      \     'inactive': { 'items': [''], 'highlight': {'bg': '#1f1f1f', 'fg': '#666666'} }
+      \   },
+      \   'separator': '',
+      \ },
+      \ 'right': {
+      \   'section_1': {
+      \     'active':   { 'items': ['someOtherItem'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'inactive': { 'items': ['someOtherItem'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \   },
+      \   'section_2': {
+      \     'active':   { 'items': ['anotherItem'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'inactive': { 'items': ['anotherItem'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \   },
+      \   'section_3': {
+      \     'active':   { 'items': ['yetAnotherItem'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'inactive': { 'items': ['yetAnotherItem'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \   },
+      \   'separator': '',
+      \ }
+      \}
 
 function! jostline#set() abort
 	set statusline=%!g:jostline#build()
@@ -47,22 +63,10 @@ function! jostline#set() abort
 endfunction
 
 function! g:jostline#build()
-	let is_active = g:statusline_winid == win_getid()
-	let cfg = deepcopy(g:statusline_config)
+	let l:configMap = deepcopy(g:statusline_config)
+	let isActive = g:statusline_winid == win_getid()
 
-	if !is_active
-		if has_key(cfg.left, 'section_1')
-			let cfg.left.section_1.items = ['windowNumber']
-		endif
-		if has_key(cfg.left, 'section_2')
-			let cfg.left.section_2.items = []
-		endif
-		if has_key(cfg.left, 'section_3')
-			let cfg.left.section_3.items = []
-		endif
-	endif
-
-  return ''.s:parseSectionGroup(cfg.left).'%='.s:parseSectionGroup(cfg.right).' '
+	return s:parseConfig(isActive,l:configMap)
 endfunction
 
 function! s:getMode() 
@@ -96,7 +100,7 @@ function! s:getItemValue(item)
 	return has_key(l:itemValueMap, a:item) ? l:itemValueMap[a:item] : v:null 
 endfunction
 
-function! s:parseSectionItems(items)
+function! s:parseItems(items)
 	let l:itemValues = filter(map(copy(a:items),'s:getItemValue(v:val)'), 'v:val !=v:null' )
 	return empty(l:itemValues) ? v:null : join(l:itemValues, '')
 endfunction
@@ -105,39 +109,48 @@ function! s:getSections(map)
 	return filter(copy(a:map), 'v:key =~# "^section_\\d\\+$"')
 endfunction
 
-function! s:parseSectionGroup(map)
-	let l:groupMap = a:map
-  	let l:sections = s:getSections(l:groupMap)
-  	let l:separator = l:groupMap ->get('separator','')
-	let l:side = l:groupMap ->get('side','')
-	let l:parts = []
+function! s:parseConfig(isActive,configMap)
+	let l:statuslineParts = []
+	let l:configMap = a:configMap
+	let l:status = a:isActive ? 'active' : 'inactive'
 
-	for [name, data] in items(l:sections)
-	   	let l:itemsStr = s:parseSectionItems(data.items)
-		let l:highlighted = s:appendHighlights(name, l:itemsStr, l:side, l:separator)
+	for side in ['left', 'right']
+		let l:separator = get(l:configMap,'separator','')
+		let l:groupParts = []
 
-		if l:highlighted != v:null
-			call add(l:parts,l:highlighted)
-		endif
+		for section in ['section_1', 'section_2', 'section_3']
+			let l:items = s:parseItems(l:configMap[side][section][status].items)
+			let l:highlight = join([section,side,status],'_')	
+			let l:sectionHighlight = s:buildHighlightStr(l:highlight,l:items) 
+
+			call add(l:groupParts,l:sectionHighlight)
+		endfor
+
+		call add(l:statuslineParts,join(l:groupParts,''))
 	endfor
-  return empty(l:parts) ? '' : join(l:parts, '')
+
+	return empty(l:statuslineParts) ? '' : join(l:statuslineParts, '%=')
 endfunction
 
-function! s:appendHighlights(name,items,side,separator) 
-	if a:items == v:null 
-		return a:items
-	endif
-
-	let l:items = s:appendItemHighlight(a:name,a:items,a:side)
-	let l:separator = s:appendSeparatorHighlight(a:name,a:separator,a:side) 
-
-	return  a:side == 'LEFT'  ? l:items.l:separator:
-		   \a:side == 'RIGHT' ? l:separator.l:items:
-		   \v:null
+function! s:buildHighlightStr(highlightName,value) 
+	return join(['%#',a:highlightName,'#',a:value,'%*'],'')
 endfunction
 
-function! s:appendItemHighlight(name,items,side) 
-	return '%#'.a:name.'_'.a:side.'# '.a:items.'%*'		
+" function! s:appendHighlights(name,items,side,separator,status) 
+" 	if a:items == v:null 
+" 		return a:items
+" 	endif
+" 
+" 	let l:items = s:appendItemHighlight(a:name,a:items,a:side,a:status)
+" 	let l:separator = s:appendSeparatorHighlight(a:name,a:separator,a:side) 
+" 
+" 	return  a:side == 'LEFT'  ? l:items.l:separator:
+" 		   \a:side == 'RIGHT' ? l:separator.l:items:
+" 		   \v:null
+" endfunction
+
+function! s:appendItemHighlight(name,items,side,status) 
+	return '%#'.a:name.'_'.a:side.'_'.a:status.'#'.a:items.'%*'		
 endfunction
 
 function! s:appendSeparatorHighlight(name,separator,side) 
@@ -151,23 +164,30 @@ function! s:parseHighlightMap(map,key,default)
 endfunction
 
 function! s:setDynamicSectionHighlights()
-	let l:cfg = deepcopy(g:statusline_config)
-	let l:sections = s:getSections(l:cfg.left)
-	" not used yet
-	let style = 'bold'
+	let l:configMap = deepcopy(g:statusline_config)
+" 	let style = 'bold'
 
-	for [name, data] in items(l:sections)
-		let l:foreground = s:parseHighlightMap(data.highlight,'fg','#ffffff')
-		let l:background = s:parseHighlightMap(data.highlight,'bg','#000000')
+	for side in ['left', 'right']
+		for section in ['section_1', 'section_2', 'section_3']
+			for status in ['active', 'inactive']
+				let l:foreground = s:parseHighlightMap(l:configMap[side][section][status].highlight,'fg','#ffffff')
+				let l:background = s:parseHighlightMap(l:configMap[side][section][status].highlight,'bg','#000000')
+				let l:highlight = join([section,side,status],'_')	
 
-		let l:cmdSeparatorHighlight = printf('highlight %s_%s_separator guifg=%s guibg=%s',name, 'left', l:foreground, l:background)
-		let l:cmdSectionHighlight = printf('highlight %s_%s guifg=%s guibg=%s',name, 'left', l:foreground, l:background)
-
- 		execute l:cmdSeparatorHighlight
- 		execute l:cmdSectionHighlight
+				call s:executeHighlight(l:highlight,l:foreground,l:background)
+			endfor
+		endfor
 	endfor
 endfunction
 
+function! s:executeHighlight(highlight,foreground,background)
+	let l:highlightName = 'highlight '.a:highlight
+	let l:highlightForeground = 'guifg='.a:foreground
+	let l:highlightBackground = 'guibg='.a:background
+	let l:cmd = join([l:highlightName,l:highlightForeground,l:highlightBackground],' ')
+
+	execute l:cmd
+endfunction
 
 
 
