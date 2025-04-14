@@ -57,18 +57,21 @@ let g:statusline_config = {
       \ }
       \}
 
-function! jostline#set() abort
-	set statusline=%!g:jostline#build()
-  	call s:setDynamicSectionHighlights()
+function! jostline#init() abort
+	set statusline=%!jostline#build()
+	call s:setDynamicSectionHighlights()
 endfunction
 
 function! g:jostline#build()
 	let l:configMap = deepcopy(g:statusline_config)
-	let isActive = g:statusline_winid == win_getid()
-
-	return s:parseConfig(isActive,l:configMap)
+	let l:windowStatus = g:statusline_winid == win_getid()
+	
+	return s:parseConfig(l:windowStatus,l:configMap)
 endfunction
 
+" ************************************************************
+" *****************SECTION ITEM GETTERS **********************
+" ************************************************************
 function! s:getMode() 
 	return get(g:mode_map, mode(), 'UNKNOWN MODE')
 endfunction
@@ -97,66 +100,98 @@ function! s:getItemValue(item)
 		\ 'windowNumber': s:getWindowNumber(),
 		\ 'modified':     s:getModified()
 		\ }
-	return has_key(l:itemValueMap, a:item) ? l:itemValueMap[a:item] : v:null 
+	return has_key(l:itemValueMap, a:item) ? l:itemValueMap[a:item] : '' 
 endfunction
 
 function! s:parseItems(items)
-	let l:itemValues = filter(map(copy(a:items),'s:getItemValue(v:val)'), 'v:val !=v:null' )
-	return empty(l:itemValues) ? v:null : join(l:itemValues, '')
+	return join(filter(map(copy(a:items),'s:getItemValue(v:val)'),'v:val !=""'),'')
 endfunction
 
 function! s:getSections(map)
 	return filter(copy(a:map), 'v:key =~# "^section_\\d\\+$"')
 endfunction
 
-function! s:parseConfig(isActive,configMap)
-	let l:statuslineParts = []
-	let l:configMap = a:configMap
-	let l:status = a:isActive ? 'active' : 'inactive'
+function! s:getSides(map)
+	return filter(copy(a:map), 'v:key ==# "left" || v:key ==# "right"')
+endfunction
 
-	for side in ['left', 'right']
-		let l:separator = get(l:configMap,'separator','')
-		let l:groupParts = []
+function! s:getStatuses(map)
+	return filter(copy(a:map), 'v:key ==# "active" || v:key ==# "inactive"')
+endfunction
 
-		for section in ['section_1', 'section_2', 'section_3']
-			let l:items = s:parseItems(l:configMap[side][section][status].items)
-			let l:highlight = join([section,side,status],'_')	
-			let l:sectionHighlight = s:buildHighlightStr(l:highlight,l:items) 
+function! s:parseConfig(windowStatus,configMap)
+	try
+		let l:slDataMap = s:initStatuslineDataMap()
+		let l:windowStatus = a:windowStatus ? 'active' : 'inactive'
+		let l:sideMap = s:getSides(a:configMap)
 
-			call add(l:groupParts,l:sectionHighlight)
+		for [side,side_data] in items(l:sideMap)
+			let l:sideParts= []
+			let l:separator = get(l:side_data,'separator','')
+			let l:sectionMap = s:getSections(side_data)
+
+			for [section,section_data] in items(l:sectionMap)
+				let l:secDataMap = s:initSectionDataMap()
+				let l:statusMap = s:getStatuses(section_data)
+				
+				for [status,status_data] in items(l:statusMap)
+					if l:windowStatus ==# status
+						let l:items = s:parseItems(status_data.items)
+
+						if l:items != ''
+							call s:mapAdd(l:secDataMap.items,'highlight',join([section,side,status],'_'))
+							call s:mapAdd(l:secDataMap.items,'value',l:items)
+							call s:mapAdd(l:secDataMap.separator,'highlight',join([section,side,status,'separator'],'_'))
+							call s:mapAdd(l:secDataMap.separator,'value',l:separator)
+							call s:mapAdd(l:secDataMap.separator,'value',l:separator)
+
+							call add(l:sideParts,s:buildSectionStr(l:secDataMap,side))
+						endif
+					endif
+				endfor
+			endfor
+
+			call s:mapAdd(l:slDataMap,side,join(l:sideParts,''))
 		endfor
 
-		call add(l:statuslineParts,join(l:groupParts,''))
-	endfor
-
-	return empty(l:statuslineParts) ? '' : join(l:statuslineParts, '%=')
+		return l:slDataMap['left'] . '%=' . l:slDataMap['right']
+	catch /.*/
+		echohl ErrorMsg
+		echom 'Jostline - Error: ' . v:exception . ' At: ' . v:throwpoint
+		echohl None
+	endtry
 endfunction
 
-function! s:buildHighlightStr(highlightName,value) 
-	return join(['%#',a:highlightName,'#',a:value,'%*'],'')
+function! s:mapAdd(map,key,val)
+	let a:map[a:key] = a:val
 endfunction
 
-" function! s:appendHighlights(name,items,side,separator,status) 
-" 	if a:items == v:null 
-" 		return a:items
-" 	endif
-" 
-" 	let l:items = s:appendItemHighlight(a:name,a:items,a:side,a:status)
-" 	let l:separator = s:appendSeparatorHighlight(a:name,a:separator,a:side) 
-" 
-" 	return  a:side == 'LEFT'  ? l:items.l:separator:
-" 		   \a:side == 'RIGHT' ? l:separator.l:items:
-" 		   \v:null
-" endfunction
-
-function! s:appendItemHighlight(name,items,side,status) 
-	return '%#'.a:name.'_'.a:side.'_'.a:status.'#'.a:items.'%*'		
+function! s:initSectionDataMap()
+	let l:dataMap = {}
+	let l:dataMap['items'] = {}
+	let l:dataMap['separator'] = {}
+	return l:dataMap
 endfunction
 
-function! s:appendSeparatorHighlight(name,separator,side) 
-	return '%#'.a:name.'_'.a:side.'_separator#'.a:separator.'%*'		
+function! s:initStatuslineDataMap()
+	let l:dataMap = {}
+	let l:dataMap['left'] = ''
+	let l:dataMap['right'] = ''
+	return l:dataMap
 endfunction
 
+function! s:buildHighlightStr(map) 
+	let l:data = copy(a:map)
+	return join(['%#',l:data.highlight,'#',l:data.value,'%*'],'')
+endfunction
+
+function! s:buildSectionStr(buildMap,side) 
+  	let l:data = copy(a:buildMap)
+	let l:items = s:buildHighlightStr(l:data.items)
+	let l:separator = s:buildHighlightStr(l:data.separator)
+
+	return (a:side ==# 'left') ? l:items . l:separator : l:separator . l:items
+endfunction
 
 function! s:parseHighlightMap(map,key,default)
 	let l:value = get(a:map,a:key,a:default)
@@ -165,14 +200,18 @@ endfunction
 
 function! s:setDynamicSectionHighlights()
 	let l:configMap = deepcopy(g:statusline_config)
-" 	let style = 'bold'
+	let l:sideMap = s:getSides(l:configMap)
 
-	for side in ['left', 'right']
-		for section in ['section_1', 'section_2', 'section_3']
-			for status in ['active', 'inactive']
-				let l:foreground = s:parseHighlightMap(l:configMap[side][section][status].highlight,'fg','#ffffff')
-				let l:background = s:parseHighlightMap(l:configMap[side][section][status].highlight,'bg','#000000')
+	for [side,side_data] in items(l:sideMap)
+		let l:sectionMap = s:getSections(side_data)
+
+		for [section,section_data] in items(l:sectionMap)
+			let l:statusMap = s:getStatuses(section_data)
+			
+			for [status,status_data] in items(l:statusMap)
 				let l:highlight = join([section,side,status],'_')	
+				let l:foreground = s:parseHighlightMap(status_data.highlight,'fg','#ffffff')
+				let l:background = s:parseHighlightMap(status_data.highlight,'bg','#000000')
 
 				call s:executeHighlight(l:highlight,l:foreground,l:background)
 			endfor
@@ -181,13 +220,11 @@ function! s:setDynamicSectionHighlights()
 endfunction
 
 function! s:executeHighlight(highlight,foreground,background)
-	let l:highlightName = 'highlight '.a:highlight
+	let l:highlight = 'highlight '.a:highlight
 	let l:highlightForeground = 'guifg='.a:foreground
 	let l:highlightBackground = 'guibg='.a:background
-	let l:cmd = join([l:highlightName,l:highlightForeground,l:highlightBackground],' ')
+	let l:cmd = join([l:highlight,l:highlightForeground,l:highlightBackground],' ')
 
 	execute l:cmd
 endfunction
-
-
 
