@@ -222,34 +222,25 @@ function! s:setDynamicSectionHighlights()
 			let l:currSection = l:sectionNames[l:i]
 			let l:nextSection = get(l:sectionNames, l:i + 1, '')
 
-			if l:nextSection != ''
-				for l:status in ['active', 'inactive']
-					let l:currData = get(sectionMap[currSection], l:status, {})
+			for l:status in ['active', 'inactive']
+				let l:currData = get(sectionMap[currSection], l:status, {})
+				let l:currBG = s:parseHighlightMap(l:currData.highlight, 'bg', '#000000')
+				let l:currFG = s:parseHighlightMap(l:currData.highlight, 'fg', '#ffffff')
+
+				let l:highlight = join([currSection, side, l:status], '_')
+				let l:sepHighlight = join([currSection, side, l:status, 'separator'], '_')
+
+				if l:nextSection != ''
 					let l:nextData = get(sectionMap[nextSection], l:status, {})
-
-					let l:currBG = s:parseHighlightMap(l:currData.highlight, 'bg', '#000000')
 					let l:nextFG = s:parseHighlightMap(l:nextData.highlight, 'bg', '#ffffff')
-					let l:currFG = s:parseHighlightMap(l:currData.highlight, 'fg', '#ffffff')
 
-					let l:highlight = join([currSection, side, l:status], '_')
-					let l:sepHighlight = join([currSection, side, l:status, 'separator'], '_')
-
-					call s:executeHighlight(l:highlight, l:currFG, l:currBG)
 					call s:executeHighlight(l:sepHighlight, l:currBG, l:nextFG)
-  				endfor
-			endif
-		endfor
-		
-    	let l:lastSection = l:sectionNames[-1]
-		for l:status in ['active', 'inactive']
-			let l:data = get(sectionMap[lastSection], l:status, {})
-			let l:bg = s:parseHighlightMap(l:data.highlight, 'bg', '#000000')
-			let l:fg = s:parseHighlightMap(l:data.highlight, 'fg', '#ffffff')
-			let l:highlight = join([lastSection, side, l:status], '_')
-			let l:sepHighlight = join([lastSection, side, l:status, 'separator'], '_')
+				else
+					call s:executeHighlight(l:sepHighlight,l:currBG,'NONE')
+				endif
 
-			call s:executeHighlight(l:highlight, l:fg, l:bg)
-			call s:executeHighlight(l:sepHighlight, l:bg, '#1a1a1a')
+				call s:executeHighlight(l:highlight, l:currFG, l:currBG)
+			endfor
 		endfor
 	endfor
 endfunction
