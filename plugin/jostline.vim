@@ -42,16 +42,16 @@ let g:statusline_config = {
       \ },
       \ 'right': {
       \   'section_1': {
-      \     'active':   { 'items': ['someOtherItem'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
-      \     'inactive': { 'items': ['someOtherItem'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \     'active':   { 'items': [''], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'inactive': { 'items': [''], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
       \   },
       \   'section_2': {
-      \     'active':   { 'items': ['anotherItem'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
-      \     'inactive': { 'items': ['anotherItem'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \     'active':   { 'items': ['fileType'], 'highlight': {'bg': '#4b2a55', 'fg': '#efd7f6'} },
+      \     'inactive': { 'items': [''], 'highlight': {'bg': '#3a2d3f', 'fg': '#a3a3a3'} }
       \   },
       \   'section_3': {
-      \     'active':   { 'items': ['yetAnotherItem'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
-      \     'inactive': { 'items': ['yetAnotherItem'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \     'active':   { 'items': ['modified'], 'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
+      \     'inactive': { 'items': [''], 'highlight': {'bg': '#1f1f1f', 'fg': '#666666'} }
       \   },
       \   'separator': '',
       \ }
@@ -89,7 +89,7 @@ function! s:getWindowNumber()
 endfunction
 
 function! s:getModified() 
-	return &modified ? '[+]' : ''
+	return &modified ? 'Modified [+]' : 'No Changes'
 endfunction
 
 function! s:getItemValue(item)
@@ -100,7 +100,8 @@ function! s:getItemValue(item)
 		\ 'windowNumber': s:getWindowNumber(),
 		\ 'modified':     s:getModified()
 		\ }
-	return has_key(l:itemValueMap, a:item) ? l:itemValueMap[a:item] : '' 
+
+	return has_key(l:itemValueMap,a:item) ? ' ' . l:itemValueMap[a:item] . ' ' : ''
 endfunction
 
 function! s:parseItems(items)
@@ -198,27 +199,6 @@ function! s:parseHighlightMap(map,key,default)
 	return l:value == '' ? a:default : l:value
 endfunction
 
-function! s:setDynamicSectionHighlights()
-	let l:configMap = deepcopy(g:statusline_config)
-	let l:sideMap = s:getSides(l:configMap)
-
-	for [side,side_data] in items(l:sideMap)
-		let l:sectionMap = s:getSections(side_data)
-
-		for [section,section_data] in items(l:sectionMap)
-			let l:statusMap = s:getStatuses(section_data)
-			
-			for [status,status_data] in items(l:statusMap)
-				let l:highlight = join([section,side,status],'_')	
-				let l:foreground = s:parseHighlightMap(status_data.highlight,'fg','#ffffff')
-				let l:background = s:parseHighlightMap(status_data.highlight,'bg','#000000')
-
-				call s:executeHighlight(l:highlight,l:foreground,l:background)
-			endfor
-		endfor
-	endfor
-endfunction
-
 function! s:executeHighlight(highlight,foreground,background)
 	let l:highlight = 'highlight '.a:highlight
 	let l:highlightForeground = 'guifg='.a:foreground
@@ -226,5 +206,51 @@ function! s:executeHighlight(highlight,foreground,background)
 	let l:cmd = join([l:highlight,l:highlightForeground,l:highlightBackground],' ')
 
 	execute l:cmd
+endfunction
+
+" hacky first step with separators, need to clean up loops
+function! s:setDynamicSectionHighlights()
+	let l:configMap = deepcopy(g:statusline_config)
+	let l:sideMap = s:getSides(l:configMap)
+
+	for [side, side_data] in items(l:sideMap)
+		let l:sectionMap = s:getSections(side_data)
+		let l:sectionNames = keys(l:sectionMap)
+		call sort(l:sectionNames)
+
+		for l:i in range(0, len(l:sectionNames) - 1)
+			let l:currSection = l:sectionNames[l:i]
+			let l:nextSection = get(l:sectionNames, l:i + 1, '')
+
+			if l:nextSection != ''
+				for l:status in ['active', 'inactive']
+					let l:currData = get(sectionMap[currSection], l:status, {})
+					let l:nextData = get(sectionMap[nextSection], l:status, {})
+
+					let l:currBG = s:parseHighlightMap(l:currData.highlight, 'bg', '#000000')
+					let l:nextFG = s:parseHighlightMap(l:nextData.highlight, 'bg', '#ffffff')
+					let l:currFG = s:parseHighlightMap(l:currData.highlight, 'fg', '#ffffff')
+
+					let l:highlight = join([currSection, side, l:status], '_')
+					let l:sepHighlight = join([currSection, side, l:status, 'separator'], '_')
+
+					call s:executeHighlight(l:highlight, l:currFG, l:currBG)
+					call s:executeHighlight(l:sepHighlight, l:currBG, l:nextFG)
+  				endfor
+			endif
+		endfor
+		
+    	let l:lastSection = l:sectionNames[-1]
+		for l:status in ['active', 'inactive']
+			let l:data = get(sectionMap[lastSection], l:status, {})
+			let l:bg = s:parseHighlightMap(l:data.highlight, 'bg', '#000000')
+			let l:fg = s:parseHighlightMap(l:data.highlight, 'fg', '#ffffff')
+			let l:highlight = join([lastSection, side, l:status], '_')
+			let l:sepHighlight = join([lastSection, side, l:status, 'separator'], '_')
+
+			call s:executeHighlight(l:highlight, l:fg, l:bg)
+			call s:executeHighlight(l:sepHighlight, l:bg, '#1a1a1a')
+		endfor
+	endfor
 endfunction
 
