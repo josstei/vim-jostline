@@ -121,7 +121,8 @@ function! s:getGitBranchStats()
 		let g:git_branch_stats = join(l:parts, ' ')
 		let g:git_branch_stats_time = l:mtime
 	endif
-return g:git_branch_stats
+
+	return g:git_branch_stats
 endfunction
 
 function! s:getMode() 
@@ -158,10 +159,6 @@ endfunction
 
 function! s:getModifiable()
 	return &modifiable ? '' : 'Not Editable'
-endfunction
-
-function! s:getPreview()
-	return &previewwindow ? '[Preview]' : ''
 endfunction
 
 function! s:getLines()
