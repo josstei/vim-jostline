@@ -23,6 +23,25 @@ let g:mode_map = {
 			\ 'a': 'ARGUMENT', 
 			\}
 
+let g:left_section_1_active_items = ['windowNumber']
+let g:left_section_1_active_highlight = ['#000000','#c678dd']
+let g:left_section_1_inactive_items = ['windowNumber']
+let g:left_section_1_inactive_highlight = ['#000000','#c678dd']
+
+let g:left_section_2_active_items = ['mode']
+let g:left_section_2_active_highlight = ['#000000','#c678dd']
+let g:left_section_2_inactive_items = ['mode']
+let g:left_section_2_inactive_highlight = ['#000000','#c678dd']
+
+let g:left_section_3_active_items = ['gitStats']
+let g:left_section_3_active_highlight = ['#000000','#c678dd']
+let g:left_section_3_inactive_items = ['gitStats']
+let g:left_section_3_inactive_highlight = ['#000000','#c678dd']
+
+let g:left_section_4_active_items = ['fileName']
+let g:left_section_4_active_highlight = ['#000000','#c678dd']
+let g:left_section_4_inactive_items = ['fileName']
+let g:left_section_4_inactive_highlight = ['#000000','#c678dd']
 
 let g:statusline_config = {
       \ 'left': {
@@ -31,43 +50,43 @@ let g:statusline_config = {
       \		'section_1': {
 	  \			'active':   { 
 	  \				'items': ['windowNumber'], 
-	  \				'highlight': {
-	  \					'bg': '#c678dd', 
-	  \					'fg': '#000000'
-	  \				} 
+	  \				'highlight': { 'bg': '#c678dd', 'fg': '#000000' } 
 	  \			},
       \			'inactive': { 
 	  \				'items': ['windowNumber'], 
-	  \				'highlight': {
-	  \					'bg': '#5e4b6e',
-	  \					'fg': '#222222'
-	  \				} 
+	  \				'highlight': { 'bg': '#5e4b6e', 'fg': '#222222' } 
 	  \			}
       \		},
       \		'section_2': {
       \			'active': { 
 	  \				'items': ['mode'],
-	  \				'highlight': {
-	  \					'bg': '#4b2a55',
-	  \					'fg': '#efd7f6'
-	  \				}
+	  \				'highlight': { 'bg': '#4b2a55', 'fg': '#efd7f6' }
 	  \			 },
       \			'inactive': { 
 	  \				'items': [''],
-	  \				'highlight': {
-	  \					'bg': '#3a2d3f',
-	  \					'fg': '#a3a3a3'
-	  \				}
+	  \				'highlight': { 'bg': '#3a2d3f', 'fg': '#a3a3a3' }
 	  \			}
       \		},
-      \   'section_3': {
-      \     'active':   { 'items': ['gitStats'], 'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
-      \     'inactive': { 'items': [''], 'highlight': {'bg': '#1f1f1f', 'fg': '#666666'} }
-      \   },
-      \   'section_4': {
-      \     'active':   { 'items': ['fileName'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
-      \     'inactive': { 'items': [''], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
-      \   }
+      \		'section_3': {
+      \			'active': {
+	  \				'items': ['gitStats'],
+	  \				'highlight': { 'bg': '#333333', 'fg': '#ffffff' } 
+	  \			},
+	  \			'inactive': { 
+	  \				'items': [''],
+	  \				'highlight': { 'bg': '#1f1f1f', 'fg': '#666666' }
+	  \			}
+      \		},
+      \		'section_4': {
+      \			'active': {
+	  \				'items': ['fileName'],
+	  \				'highlight': { 'bg': '#c678dd', 'fg': '#000000' }
+	  \			},
+      \			'inactive': {
+	  \				'items': [''],
+	  \				'highlight': { 'bg': '#5e4b6e', 'fg': '#222222' }
+	  \			}
+      \		}
       \ },
       \ 'right': {
       \   'section_1': {
