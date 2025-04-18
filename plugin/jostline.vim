@@ -26,23 +26,52 @@ let g:mode_map = {
 
 let g:statusline_config = {
       \ 'left': {
-      \   'section_1': {
-      \     'active':   { 'items': ['windowNumber'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
-      \     'inactive': { 'items': ['windowNumber'], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
-      \   },
-      \   'section_2': {
-      \     'active':   { 'items': ['mode'], 'highlight': {'bg': '#4b2a55', 'fg': '#efd7f6'} },
-      \     'inactive': { 'items': [''], 'highlight': {'bg': '#3a2d3f', 'fg': '#a3a3a3'} }
-      \   },
+      \		'separator': '',
+      \		'subseparator': '|',
+      \		'section_1': {
+	  \			'active':   { 
+	  \				'items': ['windowNumber'], 
+	  \				'highlight': {
+	  \					'bg': '#c678dd', 
+	  \					'fg': '#000000'
+	  \				} 
+	  \			},
+      \			'inactive': { 
+	  \				'items': ['windowNumber'], 
+	  \				'highlight': {
+	  \					'bg': '#5e4b6e',
+	  \					'fg': '#222222'
+	  \				} 
+	  \			}
+      \		},
+      \		'section_2': {
+      \			'active': { 
+	  \				'items': ['mode'],
+	  \				'highlight': {
+	  \					'bg': '#4b2a55',
+	  \					'fg': '#efd7f6'
+	  \				}
+	  \			 },
+      \			'inactive': { 
+	  \				'items': [''],
+	  \				'highlight': {
+	  \					'bg': '#3a2d3f',
+	  \					'fg': '#a3a3a3'
+	  \				}
+	  \			}
+      \		},
       \   'section_3': {
-      \     'active':   { 'items': ['fileName'], 'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
+      \     'active':   { 'items': ['gitStats'], 'highlight': {'bg': '#333333', 'fg': '#ffffff'} },
       \     'inactive': { 'items': [''], 'highlight': {'bg': '#1f1f1f', 'fg': '#666666'} }
       \   },
-      \   'separator': '',
+      \   'section_4': {
+      \     'active':   { 'items': ['fileName'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'inactive': { 'items': [''], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
+      \   }
       \ },
       \ 'right': {
       \   'section_1': {
-      \     'active':   { 'items': [''], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
+      \     'active':   { 'items': ['lines'], 'highlight': {'bg': '#c678dd', 'fg': '#000000'} },
       \     'inactive': { 'items': [''], 'highlight': {'bg': '#5e4b6e', 'fg': '#222222'} }
       \   },
       \   'section_2': {
@@ -54,8 +83,12 @@ let g:statusline_config = {
       \     'inactive': { 'items': [''], 'highlight': {'bg': '#1f1f1f', 'fg': '#666666'} }
       \   },
       \   'separator': '',
+      \   'subseparator': '|',
       \ }
       \}
+
+let g:git_branch_stats = ''
+let g:git_branch_stats_time = 0
 
 function! jostline#init() abort
 	set statusline=%!jostline#build()
@@ -70,8 +103,27 @@ function! g:jostline#build()
 endfunction
 
 " ************************************************************
-" *****************SECTION ITEM GETTERS **********************
+" **************** SECTION ITEM GETTERS START ****************
 " ************************************************************
+
+function! s:getGitBranchStats()
+	let l:mtime = getftime('.git/index')
+	if g:git_branch_stats ==# '' || g:git_branch_stats_time != l:mtime
+		let l:branch = substitute(system('git rev-parse --abbrev-ref HEAD'), '\n$', '', '')
+		let l:stats = substitute(system('git diff --shortstat'), '\n$', '', '')
+
+		let l:insert = matchstr(l:stats, '\d\+\s\+insertion')
+		let l:delete = matchstr(l:stats, '\d\+\s\+deletion')
+		let l:plus = l:insert !=# '' ? '+' . matchstr(l:insert, '\d\+') : ''
+		let l:minus = l:delete !=# '' ? '-' . matchstr(l:delete, '\d\+') : ''
+
+		let l:parts = filter([' ' . l:branch, l:plus, l:minus], 'v:val !=# ""')
+		let g:git_branch_stats = join(l:parts, ' ')
+		let g:git_branch_stats_time = l:mtime
+	endif
+return g:git_branch_stats
+endfunction
+
 function! s:getMode() 
 	return get(g:mode_map, mode(), 'UNKNOWN MODE')
 endfunction
@@ -92,13 +144,58 @@ function! s:getModified()
 	return &modified ? 'Modified [+]' : 'No Changes'
 endfunction
 
+function! s:getFilePath()
+	return expand('%:p:h')
+endfunction
+
+function! s:getFileExtension()
+	return expand('%:e')
+endfunction
+
+function! s:getFileRoot()
+	return expand('%:r')
+endfunction
+
+function! s:getModifiable()
+	return &modifiable ? '' : 'Not Editable'
+endfunction
+
+function! s:getPreview()
+	return &previewwindow ? '[Preview]' : ''
+endfunction
+
+function! s:getLines()
+	return 'Lines: ' . line('$')
+endfunction
+
+function! s:getWordCount()
+	return wordcount().words
+endfunction
+
+function! s:getColumns()
+	return 'Columns: ' . &columns
+endfunction
+
+function! s:getDate()
+	return strftime('%Y-%m-%d')
+endfunction
+
+" ************************************************************
+" **************** SECTION ITEM GETTERS END ******************
+" ************************************************************
+
 function! s:getItemValue(item)
 	let l:itemValueMap = {
 		\ 'mode':         s:getMode(),
 		\ 'fileName':     s:getFilename(),
 		\ 'fileType':     s:getFiletype(),
+		\ 'filePath':     s:getFilePath(),
 		\ 'windowNumber': s:getWindowNumber(),
-		\ 'modified':     s:getModified()
+		\ 'modified':     s:getModified(),
+		\ 'date':     	  s:getDate(),
+		\ 'lines':     	  s:getLines(),
+		\ 'columns':   	  s:getColumns(),
+		\ 'gitStats': 	  s:getGitBranchStats()
 		\ }
 
 	return has_key(l:itemValueMap,a:item) ? ' ' . l:itemValueMap[a:item] . ' ' : ''
@@ -107,7 +204,6 @@ endfunction
 function! s:parseItems(items)
 	return join(filter(map(copy(a:items),'s:getItemValue(v:val)'),'v:val !=""'),'')
 endfunction
-
 
 function! s:getSections(map)
 	return filter(copy(a:map), { key, val ->
@@ -275,3 +371,9 @@ function! s:sortSectionsBySide(side,sections)
 		call reverse(sort(a:sections))
 	endif
 endfunction`
+
+augroup UpdateGitBranchStats
+    autocmd!
+    autocmd BufWritePost * let g:git_branch_stats = '' | let g:git_branch_stats_time = 0
+augroup END
+
