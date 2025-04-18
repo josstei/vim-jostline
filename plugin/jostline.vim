@@ -108,8 +108,21 @@ function! s:parseItems(items)
 	return join(filter(map(copy(a:items),'s:getItemValue(v:val)'),'v:val !=""'),'')
 endfunction
 
+
 function! s:getSections(map)
-	return filter(copy(a:map), 'v:key =~# "^section_\\d\\+$"')
+	return filter(copy(a:map), { key, val ->
+		\ key =~# '^section_\d\+$' &&
+		\ type(val) == type({}) &&
+		\ (s:hasNonEmptyItems(get(val, 'active', {})) ||
+		\  s:hasNonEmptyItems(get(val, 'inactive', {})))
+		\ })
+endfunction
+
+function! s:hasNonEmptyItems(submap)
+	return has_key(a:submap, 'items') &&
+		\ type(a:submap.items) == type([]) &&
+		\ !empty(a:submap.items) &&
+		\ a:submap.items[0] !=# ''
 endfunction
 
 function! s:getSides(map)
@@ -216,7 +229,8 @@ function! s:setDynamicSectionHighlights()
 	for [side, side_data] in items(l:sideMap)
 		let l:sectionMap = s:getSections(side_data)
 		let l:sectionNames = keys(l:sectionMap)
-		call sort(l:sectionNames)
+
+		call s:sortSectionsBySide(side,l:sectionNames)	
 
 		for l:i in range(0, len(l:sectionNames) - 1)
 			let l:currSection = l:sectionNames[l:i]
@@ -224,24 +238,40 @@ function! s:setDynamicSectionHighlights()
 
 			for l:status in ['active', 'inactive']
 				let l:currData = get(sectionMap[currSection], l:status, {})
-				let l:currBG = s:parseHighlightMap(l:currData.highlight, 'bg', '#000000')
-				let l:currFG = s:parseHighlightMap(l:currData.highlight, 'fg', '#ffffff')
+
+				let l:sectionBG = s:parseHighlightMap(l:currData.highlight, 'bg', 'NONE')
+				let l:sectionFG = s:parseHighlightMap(l:currData.highlight, 'fg', 'NONE')
+
+				let l:separatorFG = l:sectionBG
 
 				let l:highlight = join([currSection, side, l:status], '_')
 				let l:sepHighlight = join([currSection, side, l:status, 'separator'], '_')
 
 				if l:nextSection != ''
 					let l:nextData = get(sectionMap[nextSection], l:status, {})
-					let l:nextFG = s:parseHighlightMap(l:nextData.highlight, 'bg', '#ffffff')
+					let l:nextItems = l:nextData.items
+					let l:nextFG = s:parseHighlightMap(l:nextData.highlight, 'bg', 'NONE')
 
-					call s:executeHighlight(l:sepHighlight, l:currBG, l:nextFG)
-				else
-					call s:executeHighlight(l:sepHighlight,l:currBG,'NONE')
+					let l:separatorBG = s:parseHighlightMap(l:nextData.highlight, 'bg', 'NONE')
+
+					if !empty(l:nextItems) && l:nextItems[0] != ''
+						let l:separatorBG = s:parseHighlightMap(l:nextData.highlight, 'bg', 'NONE')
+					else
+						let l:separatorBG = 'NONE'
+					endif
 				endif
 
-				call s:executeHighlight(l:highlight, l:currFG, l:currBG)
+				call s:executeHighlight(l:sepHighlight,l:separatorFG,l:separatorBG)
+				call s:executeHighlight(l:highlight, l:sectionFG, l:sectionBG)
 			endfor
 		endfor
 	endfor
 endfunction
 
+function! s:sortSectionsBySide(side,sections)
+	if a:side == 'left'
+		call sort(a:sections)
+	else
+		call reverse(sort(a:sections))
+	endif
+endfunction`
