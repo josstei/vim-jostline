@@ -23,30 +23,26 @@ let g:mode_map = {
 			\ 'a': 'ARGUMENT', 
 			\}
 
-let g:left_section_1_active_items = ['windowNumber']
-let g:left_section_1_active_highlight = ['#000000','#c678dd']
-let g:left_section_1_inactive_items = ['windowNumber']
-let g:left_section_1_inactive_highlight = ['#222222','#5e4b6e']
-
-let g:left_section_2_active_items = ['mode']
-let g:left_section_2_active_highlight = ['#efd7f6','#4b2a55']
-let g:left_section_2_inactive_items = ['']
-let g:left_section_2_inactive_highlight = ['#000000','#c678dd']
-
-let g:left_section_3_active_items = ['gitStats']
-let g:left_section_3_active_highlight = ['#ffffff','#333333']
-let g:left_section_3_inactive_items = ['']
-let g:left_section_3_inactive_highlight = ['#000000','#c678dd']
-
-let g:left_section_4_active_items = ['fileName']
-let g:left_section_4_active_highlight = ['#000000','#c678dd']
-let g:left_section_4_inactive_items = ['']
-let g:left_section_4_inactive_highlight = ['#000000','#c678dd']
-
-let g:right_section_1_active_items = ['']
-let g:right_section_1_active_highlight = ['#000000','#c678dd']
-let g:right_section_1_inactive_items = ['']
-let g:right_section_1_inactive_highlight = ['#222222','#5e4b6e']
+" DEFAULTS ....will need to clean this up 
+" let g:jostline_left_section_1_active_items     = ['windowNumber']
+" let g:jostline_left_section_1_active_highlight = ['#000000', '#c678dd']
+" let g:jostline_left_section_1_inactive_items     = ['windowNumber']
+" let g:jostline_left_section_1_inactive_highlight = ['#222222', '#5e4b6e']
+" 
+" let g:jostline_left_section_2_active_items     = ['mode']
+" let g:jostline_left_section_2_active_highlight = ['#efd7f6', '#4b2a55']
+" let g:jostline_left_section_2_inactive_items     = ['']
+" let g:jostline_left_section_2_inactive_highlight = ['#000000', '#c678dd']
+" 
+" let g:jostline_left_section_3_active_items = ['gitStats']
+" let g:jostline_left_section_3_active_highlight = ['#ffffff','#333333']
+" let g:jostline_left_section_3_inactive_items = ['']
+" let g:jostline_left_section_3_inactive_highlight = ['#000000','#c678dd']
+" 
+" let g:jostline_left_section_4_active_items = ['fileName']
+" let g:jostline_left_section_4_active_highlight = ['#000000','#c678dd']
+" let g:jostline_left_section_4_inactive_items = ['']
+" let g:jostline_left_section_4_inactive_highlight = ['#000000','#c678dd']
 
 let g:statusline_config = {}
 
@@ -141,7 +137,7 @@ function! s:generateStatuslineConfig() abort
 		let l:sections = map(
 			  \ filter(
 			  \   keys(g:),
-			  \   'v:val =~# "^'.side.'_section_\\d\\+_active_items$"'
+			  \   'v:val =~# "^jostline_'.side.'_section_\\d\\+_active_items$"'
 			  \ ),
 			  \ 'matchstr(v:val, "\\d\\+")'
 			\)
@@ -153,12 +149,12 @@ function! s:generateStatuslineConfig() abort
 			let l:sectionMap = {}
 
 			for status in ['active', 'inactive']
-				let l:item_var = side . '_section_' . num . '_' . status . '_items'
+				let l:item_var = 'jostline_'. side . '_section_' . num . '_' . status . '_items'
 				let l:items = get(g:, l:item_var, [])
 
 				if type(l:items) != type([]) | let l:items = [] | endif
 
-				let l:high_var = side . '_section_' . num . '_' . status . '_highlight'
+				let l:high_var = 'jostline_' . side . '_section_' . num . '_' . status . '_highlight'
 				let l:highlight = get(g:, l:high_var, ['NONE','NONE'])
 
 				if type(l:highlight) != type([]) || len(l:highlight) != 2 
