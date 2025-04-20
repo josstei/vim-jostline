@@ -146,23 +146,14 @@ function! s:generateStatuslineConfig() abort
 		call s:sortArrayBySide(l:sections,side)
 
 		for num in l:sections
-			let l:sectionMap = {}
+			let l:sectionMap   = {}
 
 			for status in ['active', 'inactive']
-				let l:item_var = 'jostline_'. side . '_section_' . num . '_' . status . '_items'
-				let l:items = get(g:, l:item_var, [])
-
-				if type(l:items) != type([]) | let l:items = [] | endif
-
-				let l:high_var = 'jostline_' . side . '_section_' . num . '_' . status . '_highlight'
-				let l:highlight = get(g:, l:high_var, ['NONE','NONE'])
-
-				if type(l:highlight) != type([]) || len(l:highlight) != 2 
-					let l:highlight = ['NONE', 'NONE']
-				endif
-
-				let l:highlightMap = { 'fg': l:highlight[0], 'bg': l:highlight[1] }
-				let l:sectionMap[status] = { 'items': l:items, 'highlight': l:highlightMap}
+				let l:configPrefix			= 'jostline_'. side . '_section_' . num . '_' . status
+				let l:items					= s:getItemVar(l:configPrefix . '_items')
+				let l:highlight				= s:getHighlightVar(l:configPrefix . '_highlight')
+				let l:highlightMap			= { 'fg': l:highlight[0], 'bg': l:highlight[1] }
+				let l:sectionMap[status]	= { 'items': l:items, 'highlight': l:highlightMap}
 			endfor
 			
 			let l:side_cfg['section_' . num] = l:sectionMap
@@ -172,6 +163,20 @@ function! s:generateStatuslineConfig() abort
 	endfor
 
 	let g:statusline_config = l:cfg
+endfunction
+
+function! s:getHighlightVar(var)
+	let l:highlight = get(g:,a:var, ['NONE','NONE'])
+	if type(l:highlight) != type([]) || len(l:highlight) != 2 
+		let l:highlight = ['NONE', 'NONE']
+	endif
+	return l:highlight
+endfunction
+
+function! s:getItemVar(var)
+	let l:items = get(g:,a:var, [])
+	if type(l:items) != type([]) | let l:items = [] | endif 
+	return l:items
 endfunction
 
 function! s:buildStatuslineSide(side) abort
