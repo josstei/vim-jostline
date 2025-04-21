@@ -1,27 +1,11 @@
-let g:mode_map = { 
-			\ 'n': 'NORMAL', 
-			\ 'i': 'INSERT', 
-			\ 'R': 'REPLACE', 
-			\ 'v': 'VISUAL', 
-			\ 'V': 'VISUAL LINE', 
-			\ '^V': 'VISUAL BLOCK', 
-			\ 'c': 'COMMAND', 
-			\ 'C': 'COMMAND-LINE', 
-			\ 's': 'SELECT', 
-			\ 'S': 'SELECT LINE', 
-			\ 't': 'TERMINAL', 
-			\ 'nI': 'NORMAL INSERT', 
-			\ 'N': 'INSERT NORMAL', 
-			\ 'N:': 'NORMAL EX', 
-			\ 'iN': 'INSERT NORMAL', 
-			\ 'p': 'PREVIEW', 
-			\ 'l': 'LITERAL', 
-			\ 'R?': 'REPLACE MODE', 
-			\ 'o': 'OPERATOR-PENDING', 
-			\ 'O': 'OPERATOR PENDING', 
-			\ 'r': 'REPEAT', 
-			\ 'a': 'ARGUMENT', 
-			\}
+let g:mode_map = {
+  \ 'n':'NORMAL','i':'INSERT','R':'REPLACE','v':'VISUAL','V':'VISUAL LINE','^V':'VISUAL BLOCK',
+  \ 'c':'COMMAND','C':'COMMAND-LINE','s':'SELECT','S':'SELECT LINE','t':'TERMINAL','nI':'NORMAL INSERT',
+  \ 'N':'INSERT NORMAL','N:':'NORMAL EX','iN':'INSERT NORMAL','p':'PREVIEW','l':'LITERAL','R?':'REPLACE MODE',
+  \ 'o':'OPERATOR-PENDING','O':'OPERATOR PENDING','r':'REPEAT','a':'ARGUMENT'}
+let g:statusline_config = {}
+let g:git_branch_stats = ''
+let g:git_branch_stats_time = 0
 
 " DEFAULTS ....will need to clean this up 
 " let g:jostline_left_section_1_active_items     = ['windowNumber']
@@ -44,10 +28,9 @@ let g:mode_map = {
 " let g:jostline_left_section_4_inactive_items = ['']
 " let g:jostline_left_section_4_inactive_highlight = ['#000000','#c678dd']
 
-let g:statusline_config = {}
-
 function! jostline#init() abort
-	call s:initialize()
+	call s:generateStatuslineConfig()
+	call s:generateSectionHighlights()
 	set statusline=%!jostline#build()
 endfunction
 
@@ -55,18 +38,6 @@ function! g:jostline#build()
 	let l:status = g:statusline_winid == win_getid() ? 'active' : 'inactive'
 	return s:getSide('left',l:status) . '%=' . s:getSide('right',l:status)
 endfunction
-
-function! s:initialize()
-	call s:generateStatuslineConfig()
-	call s:generateSectionHighlights()
-endfunction
-
-" ************************************************************
-" **************** GIT INTEGRATION START *********************
-" ************************************************************
-
-let g:git_branch_stats = ''
-let g:git_branch_stats_time = 0
 
 function! s:getGitBranchStats()
 	let l:mtime = getftime('.git/index')
@@ -92,10 +63,6 @@ augroup UpdateGitBranchStats
     autocmd BufWritePost * let g:git_branch_stats = '' | let g:git_branch_stats_time = 0
 augroup END
 
-" ************************************************************
-" **************** GIT INTEGRATION END ***********************
-" ************************************************************
-
 function! s:getItemValue(item)
 	let l:itemValueMap = {
 		\ 'mode': 		  get(g:mode_map, mode(), 'UNKNOWN MODE'),
@@ -114,15 +81,7 @@ function! s:parseItems(items)
 endfunction
 
 function! s:getSections(config,status,side)
-	let l:sections = filter(keys(copy(a:config)), { key, section ->
-		\	 section =~# '^section_\d\+$' &&
-		\	 type(a:config[section]) == type({}) &&
-		\	 type(a:config[section][a:status]) == type({}) &&
-		\	 type(a:config[section][a:status].items) == type([]) &&
-		\	 !empty(a:config[section][a:status].items) &&
-		\	 a:config[section][a:status].items[0] !=# ''
-		\})
-	return s:sortArrayBySide(l:sections, a:side)
+	return s:sortArrayBySide(filter(keys(copy(a:config)), {_,section -> section =~# '^section_\d\+$'}),a:side)
 endfunction
 
 function! s:getSide(side,status) abort
