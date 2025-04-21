@@ -52,10 +52,8 @@ function! jostline#init() abort
 endfunction
 
 function! g:jostline#build()
-	let l:left  = s:buildStatuslineSide('left')
-	let l:right = s:buildStatuslineSide('right')
-
-	return l:left . '%=' . l:right
+	let l:status = g:statusline_winid == win_getid() ? 'active' : 'inactive'
+	return s:getSide('left',l:status) . '%=' . s:getSide('right',l:status)
 endfunction
 
 function! s:initialize()
@@ -115,15 +113,28 @@ function! s:parseItems(items)
 	return join(filter(map(copy(a:items),'s:getItemValue(v:val)'),'v:val !=""'),'')
 endfunction
 
-function! s:getValidSections(map,status)
-	return filter(keys(copy(a:map)), { key, section ->
+function! s:getSections(config,status,side)
+	let l:sections = filter(keys(copy(a:config)), { key, section ->
 		\	 section =~# '^section_\d\+$' &&
-		\	 type(a:map[section]) == type({}) &&
-		\	 type(a:map[section][a:status]) == type({}) &&
-		\	 type(a:map[section][a:status].items) == type([]) &&
-		\	 !empty(a:map[section][a:status].items) &&
-		\	 a:map[section][a:status].items[0] !=# ''
+		\	 type(a:config[section]) == type({}) &&
+		\	 type(a:config[section][a:status]) == type({}) &&
+		\	 type(a:config[section][a:status].items) == type([]) &&
+		\	 !empty(a:config[section][a:status].items) &&
+		\	 a:config[section][a:status].items[0] !=# ''
 		\})
+	return s:sortArrayBySide(l:sections, a:side)
+endfunction
+
+function! s:getSide(side,status) abort
+	let l:config = deepcopy(g:statusline_config[a:side])
+	let l:sectionParts = map(
+		\	s:getSections(l:config,a:status,a:side),{_,section-> 
+		\		join(s:sortArrayBySide([
+		\			s:buildHighlightStr(section.'_'.a:side.'_'.a:status, s:parseItems(get(l:config[section][a:status],'items',{}))),
+		\			s:buildHighlightStr(section.'_'.a:side.'_'.a:status.'_separator',l:config.separator)
+		\		],a:side),'')
+		\ 	})
+	return join(l:sectionParts,'')
 endfunction
 
 function! s:generateStatuslineConfig() abort
@@ -143,8 +154,7 @@ function! s:generateStatuslineConfig() abort
 			\)
 
 		call uniq(l:sections)
-		call s:sortArrayBySide(l:sections,side)
-
+		let l:sections = s:sortArrayBySide(l:sections,side)
 		for num in l:sections
 			let l:sectionMap   = {}
 
@@ -179,45 +189,21 @@ function! s:getItemVar(var)
 	return l:items
 endfunction
 
-function! s:buildStatuslineSide(side) abort
-	let l:config 	= deepcopy(g:statusline_config[a:side])
-	let l:status 	= g:statusline_winid == win_getid() ? 'active' : 'inactive'
-	let l:separator	= l:config.separator
-	let l:sections 	= s:getValidSections(l:config, l:status)
-	let l:parts 	= []
-
-	call s:sortArrayBySide(l:sections,a:side)
-
-	for section in l:sections
-		let l:items					= s:parseItems(l:config[section][l:status]['items'])
-		let l:sectionHighlight	 	= section . '_' . a:side . '_' . l:status
-		let l:separatorHighlight 	= l:sectionHighlight . '_separator'
-		let l:itemHighlightStr		= s:buildHighlightStr({'highlight':l:sectionHighlight,'value':l:items})
-		let l:separatorHighlightStr	= s:buildHighlightStr({'highlight':l:separatorHighlight,'value':l:separator})
-		let l:sectionParts 			= [l:itemHighlightStr,l:separatorHighlightStr]
-
-		call s:sortArrayBySide(l:sectionParts,a:side)
-		call extend(l:parts,l:sectionParts)
-	endfor
-
-	return join(l:parts,'')
-endfunction
-
 function! s:sortArrayBySide(arr,side)
-	if a:side ==# 'right' | call reverse(a:arr) | else | call sort(a:arr) | endif
+	let l:arr = copy(a:arr)
+	if a:side ==# 'right' | call reverse(l:arr) | else | call sort(l:arr) | endif
+	return l:arr
 endfunction
 
-function! s:buildHighlightStr(map) 
-	return a:map.value != '' ? join(['%#',a:map.highlight,'#',a:map.value,'%*'],'') : ''
+function! s:buildHighlightStr(highlight,value) 
+	return a:value != '' ? join(['%#',a:highlight,'#',a:value,'%*'],'') : ''
 endfunction
 
 function! s:generateSectionHighlights() abort
 	for side in ['left', 'right']
 		let l:config = deepcopy(g:statusline_config[side])
 		for status in ['active', 'inactive']
-			let l:sections = s:getValidSections(l:config,status)
-
-			call s:sortArrayBySide(l:sections,side)
+			let l:sections = s:getSections(l:config,status,side)
 
 			for i in range(0, len(l:sections) - 1)
 				let l:nextBG = s:getSectionHighlight(l:config,i + 1,l:sections,status,'bg')
