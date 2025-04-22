@@ -4,6 +4,8 @@ let s:mode_map = {
 	\ 'N':'INSERT NORMAL','N:':'NORMAL EX','iN':'INSERT NORMAL','p':'PREVIEW','l':'LITERAL','R?':'REPLACE MODE',
 	\ 'o':'OPERATOR-PENDING','O':'OPERATOR PENDING','r':'REPEAT','a':'ARGUMENT'}
 
+let s:statusline_config = {}
+
 let s:jostline_theme_gruvbox = [['#ebdbb2','#3c3836'], ['#d5c4a1','#504945'], ['#fbf1c7','#665c54'], ['#fbf1c7','#7c6f64']]
 let s:jostline_theme_tokyonight = [['#c0caf5','#1a1b26'], ['#7aa2f7','#24283b'], ['#9ece6a','#414868'], ['#bb9af7','#1f2335']]
 let s:jostline_theme_nord = [['#eceff4','#3b4252'], ['#d8dee9','#434c5e'], ['#a3be8c','#4c566a'], ['#81a1c1','#2e3440']]
@@ -22,13 +24,12 @@ function! jostline#init() abort
 	call s:generateStatuslineConfig()
 
 	if exists('g:jostline_theme')
-		call jostline#applyTheme(g:jostline_theme, g:statusline_config)
+		call jostline#applyTheme(g:jostline_theme, s:statusline_config)
 	endif
 
 	call s:generateSectionHighlights()
 	set statusline=%!jostline#build()
 endfunction
-
 
 function! g:jostline#build()
 	let l:status = g:statusline_winid == win_getid() ? 'active' : 'inactive'
@@ -60,7 +61,6 @@ function! s:defaultValues(var) abort
 endfunction
 
 function! s:generateStatuslineConfig() abort
-	let g:statusline_config = {}
 	for side in ['left', 'right']
 		let nums = filter(keys(g:), {_,var -> var =~# printf('^jostline_%s_section_\d\+_\(active\|inactive\)$', side)})
 	 	call map(nums,{_, var -> matchstr(var, '\d\+')})
@@ -76,7 +76,7 @@ function! s:generateStatuslineConfig() abort
 				  \ }
 			let sideConfig['section_'.n] = sect
 		endfor
-		let g:statusline_config[side] = sideConfig
+		let s:statusline_config[side] = sideConfig
 	endfor
 endfunction
 
@@ -125,7 +125,7 @@ function! s:getSections(config,status,side)
 endfunction
 
 function! s:getSide(side,status) abort
-	let l:config = deepcopy(g:statusline_config[a:side])
+	let l:config = deepcopy(s:statusline_config[a:side])
 	let l:sectionParts = map(
 		\	s:getSections(l:config,a:status,a:side),{_,section-> 
 		\		join(s:sortArrayBySide([
@@ -148,7 +148,7 @@ endfunction
 
 function! s:generateSectionHighlights() abort
 	for side in ['left', 'right']
-		let l:config = deepcopy(g:statusline_config[side])
+		let l:config = deepcopy(s:statusline_config[side])
 		for status in ['active', 'inactive']
 			let l:sections = s:getSections(l:config,status,side)
 
