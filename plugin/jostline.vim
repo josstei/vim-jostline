@@ -3,30 +3,21 @@ let g:mode_map = {
   \ 'c':'COMMAND','C':'COMMAND-LINE','s':'SELECT','S':'SELECT LINE','t':'TERMINAL','nI':'NORMAL INSERT',
   \ 'N':'INSERT NORMAL','N:':'NORMAL EX','iN':'INSERT NORMAL','p':'PREVIEW','l':'LITERAL','R?':'REPLACE MODE',
   \ 'o':'OPERATOR-PENDING','O':'OPERATOR PENDING','r':'REPEAT','a':'ARGUMENT'}
+
+let g:jostline_theme_gruvbox = [['#ebdbb2','#3c3836'], ['#d5c4a1','#504945'], ['#fbf1c7','#665c54'], ['#fbf1c7','#7c6f64']]
+let g:jostline_theme_tokyonight = [['#c0caf5','#1a1b26'], ['#7aa2f7','#24283b'], ['#9ece6a','#414868'], ['#bb9af7','#1f2335']]
+let g:jostline_theme_nord = [['#eceff4','#3b4252'], ['#d8dee9','#434c5e'], ['#a3be8c','#4c566a'], ['#81a1c1','#2e3440']]
+let g:jostline_theme_onedark = [['#abb2bf','#282c34'], ['#e5c07b','#3e4451'], ['#98c379','#4b5263'], ['#61afef','#21252b']]
+let g:jostline_theme_dracula = [['#f8f8f2','#282a36'], ['#50fa7b','#44475a'], ['#ff79c6','#6272a4'], ['#bd93f9','#1e1f29']]
+let g:jostline_theme_solarized_dark = [['#839496','#002b36'], ['#93a1a1','#073642'], ['#b58900','#586e75'], ['#268bd2','#073642']]
+let g:jostline_theme_catppuccin = [['#cdd6f4','#1e1e2e'], ['#f38ba8','#313244'], ['#a6e3a1','#45475a'], ['#89b4fa','#1e1e2e']]
+let g:jostline_theme_everforest = [['#d3c6aa','#2f383e'], ['#a7c080','#374145'], ['#e67e80','#4d555b'], ['#83c092','#2f383e']]
+let g:jostline_theme_monokai = [['#f8f8f2','#272822'], ['#a6e22e','#3e3d32'], ['#fd971f','#49483e'], ['#f92672','#383830']]
+let g:jostline_theme_papercolor_light = [['#000000','#eeeeee'], ['#444444','#d7d7d7'], ['#005f87','#ffffff'], ['#870000','#eeeeee']]
+
 let g:statusline_config = {}
 let g:git_branch_stats = ''
 let g:git_branch_stats_time = 0
-
-" DEFAULTS ....will need to clean this up 
-" let g:jostline_left_section_1_active_items     = ['windowNumber']
-" let g:jostline_left_section_1_active_highlight = ['#000000', '#c678dd']
-" let g:jostline_left_section_1_inactive_items     = ['windowNumber']
-" let g:jostline_left_section_1_inactive_highlight = ['#222222', '#5e4b6e']
-" 
-" let g:jostline_left_section_2_active_items     = ['mode']
-" let g:jostline_left_section_2_active_highlight = ['#efd7f6', '#4b2a55']
-" let g:jostline_left_section_2_inactive_items     = ['']
-" let g:jostline_left_section_2_inactive_highlight = ['#000000', '#c678dd']
-" 
-" let g:jostline_left_section_3_active_items = ['gitStats']
-" let g:jostline_left_section_3_active_highlight = ['#ffffff','#333333']
-" let g:jostline_left_section_3_inactive_items = ['']
-" let g:jostline_left_section_3_inactive_highlight = ['#000000','#c678dd']
-" 
-" let g:jostline_left_section_4_active_items = ['fileName']
-" let g:jostline_left_section_4_active_highlight = ['#000000','#c678dd']
-" let g:jostline_left_section_4_inactive_items = ['']
-" let g:jostline_left_section_4_inactive_highlight = ['#000000','#c678dd']
 
 function! jostline#init() abort
 	call s:generateStatuslineConfig()
@@ -34,9 +25,33 @@ function! jostline#init() abort
 	set statusline=%!jostline#build()
 endfunction
 
+function! jostline#init() abort
+	call s:generateStatuslineConfig()
+
+	if exists('g:jostline_theme')
+		call jostline#applyTheme(g:jostline_theme, g:statusline_config)
+	endif
+
+	call s:generateSectionHighlights()
+	set statusline=%!jostline#build()
+endfunction
+
+
 function! g:jostline#build()
 	let l:status = g:statusline_winid == win_getid() ? 'active' : 'inactive'
 	return s:getSide('left',l:status) . '%=' . s:getSide('right',l:status)
+endfunction
+
+function! jostline#applyTheme(name, config) abort
+	let l:theme = get(g:, 'jostline_theme_' . a:name, [])
+	if type(l:theme) != type([]) | return | endif
+	call map(copy(l:theme), {
+		\	i,hl -> map(['left','right'], {_,side ->
+		\		has_key(a:config,side) && has_key(a:config[side],'section_'.(i+1)) ?
+		\			map(['active','inactive'], {_,status ->
+		\				extend(a:config[side]['section_'.(i+1)][status], {'highlight': {'fg': hl[0], 'bg': hl[1]}})
+		\			}) : 0
+		\	})})
 endfunction
 
 function! s:getGitBranchStats()
