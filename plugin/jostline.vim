@@ -1,4 +1,4 @@
-let g:mode_map = {
+let s:mode_map = {
 	\ 'n':'NORMAL','i':'INSERT','R':'REPLACE','v':'VISUAL','V':'VISUAL LINE','^V':'VISUAL BLOCK',
 	\ 'c':'COMMAND','C':'COMMAND-LINE','s':'SELECT','S':'SELECT LINE','t':'TERMINAL','nI':'NORMAL INSERT',
 	\ 'N':'INSERT NORMAL','N:':'NORMAL EX','iN':'INSERT NORMAL','p':'PREVIEW','l':'LITERAL','R?':'REPLACE MODE',
@@ -105,7 +105,7 @@ augroup END
 
 function! s:getItemValue(item)
 	let l:itemValueMap = {
-		\ 'mode': get(g:mode_map, mode(), 'UNKNOWN MODE'),
+		\ 'mode': get(s:mode_map, mode(), 'UNKNOWN MODE'),
 		\ 'fileName': expand('%:t') ==# '' ? '[No Name]' : expand('%:t'),
 		\ 'fileType': '%{&filetype}',
 		\ 'filePath': expand('%:p:h'),
