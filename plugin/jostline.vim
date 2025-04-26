@@ -29,7 +29,7 @@ function! jostline#init() abort
 	set statusline=%!jostline#build()
 endfunction
 
-function! g:jostline#build()
+function! g:jostline#build() abort
 	let l:status = g:statusline_winid == win_getid() ? 'active' : 'inactive'
 	return s:get_sl_side('left',l:status) . '%=' . s:get_sl_side('right',l:status)
 endfunction
@@ -112,7 +112,7 @@ function! s:get_item_val(item)
 	return has_key(l:item_map,a:item) ? ' ' . l:item_map[a:item] . ' ' : ''
 endfunction
 
-function! s:get_sec_items(items)
+function! s:get_sec_items(items) abort
 	return join(filter(map(copy(a:items),'s:get_item_val(v:val)'),'v:val !=""'),'')
 endfunction
 
@@ -123,7 +123,7 @@ function! s:get_secs(map,side,status)
 endfunction
 
 function! s:get_sl_side(side,status) abort
-	let l:cfg = deepcopy(s:sl_cfg[a:side])
+	let l:cfg = get(deepcopy(s:sl_cfg), a:side,{})
 	return join(map(s:get_secs(l:cfg,a:side,a:status),{_,sec-> join(s:sort_by_side([
 		\			s:build_hl(sec.'_'.a:side.'_'.a:status, s:get_sec_items(get(l:cfg[sec][a:status],'items',{}))),
 		\			s:build_hl(sec.'_'.a:side.'_'.a:status.'_sep',l:cfg.sep)
@@ -131,19 +131,19 @@ function! s:get_sl_side(side,status) abort
 		\ 	}),'')
 endfunction
 
-function! s:sort_by_side(arr,side)
+function! s:sort_by_side(arr,side) abort
 	let l:arr = copy(a:arr)
 	if a:side ==# 'right' | call reverse(l:arr) | else | call sort(l:arr) | endif
 	return l:arr
 endfunction
 
-function! s:build_hl(hl,val) 
+function! s:build_hl(hl,val) abort 
 	return a:val != '' ? join(['%#',a:hl,'#',a:val,'%*'],'') : ''
 endfunction
 
 function! s:init_hl() abort
 	for side in ['left', 'right']
-		let l:cfg = deepcopy(s:sl_cfg[side])
+		let l:cfg = get(deepcopy(s:sl_cfg), side,{})
 		for status in ['active', 'inactive']
 			let l:secs = s:get_secs(l:cfg,side,status)
 			for i in range(0, len(l:secs) - 1)
@@ -160,6 +160,6 @@ function! s:init_hl() abort
 	endfor
 endfunction
 
-function! s:get_hl(map,idx,secs,status,hl)
+function! s:get_hl(map,idx,secs,status,hl) abort
 	return a:idx < len(a:secs) ? a:map[a:secs[a:idx]][a:status]['highlight'][a:hl] : 'NONE'
 endfunction
