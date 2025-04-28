@@ -19,42 +19,36 @@ let s:theme_map = {
 	\ 'papercolor_light':[['#000000','#eeeeee'],['#444444','#d7d7d7'],['#005f87','#ffffff'],['#870000','#eeeeee']],
 \ }
 
-let s:git_branch_stats = ''
-let s:git_branch_stats_time = 0
-
 function! jostline#init() abort
-	call s:init_cfg()
-	if exists('g:jostline_theme') | call s:set_theme(g:jostline_theme, s:sl_cfg) | endif
-	call s:init_hl()
+	call s:init_cfg() | call s:init_theme(s:sl_cfg)
 	set statusline=%!jostline#build()
 endfunction
 
 function! g:jostline#build() abort
 	let l:status = g:statusline_winid == win_getid() ? 'active' : 'inactive'
-	return s:get_sl_side('left',l:status) . '%=' . s:get_sl_side('right',l:status)
+	return s:init_sl_side('left',status).'%='.s:init_sl_side('right',status)
 endfunction
 
-function! s:set_theme(name, cfg) abort
-	let l:theme = get(s:theme_map,a:name, [])
+function! s:init_theme(cfg) abort
+	let l:colorscheme= exists('g:colors_name') ? g:colors_name : 'default'
+	let l:theme = get(s:theme_map,l:colorscheme, [])
 	
 	call map(copy(l:theme),{i,hl -> map(['left','right'], {_,side ->
-				\	has_key(a:cfg,side) && 
 				\	has_key(a:cfg[side],'section_'.(i+1)) 
 				\	? map(['active','inactive'], {_,status ->
-				\		extend(a:cfg[side]['section_'.(i+1)][status],
-				\			{'highlight': {'fg': hl[0], 'bg': hl[1]}}
+				\		extend(a:cfg[side]['section_'.(i+1)][status],{'highlight': {'fg': hl[0], 'bg': hl[1]}}
 				\		)}) 
 				\	: 0
 				\	})})
 endfunction
 
-function! s:set_sec_vals(var) abort
-	let val = get(g:, a:var, {})
+function! s:set_sec_vals(side,sec,status) abort
+	let val = get(g:,'jostline_'.a:side.'_'.a:sec.'_'.a:status,{})
 	let items = get(val, 'items', [])
-	let hl = get(val, 'highlight', [])
+	let hl = get(val, 'highlight', {})
 	let fg = get(hl,'fg','NONE')
 	let bg = get(hl,'bg','NONE')
-	return {'items': items, 'highlight': {'fg': fg, 'bg': bg}}
+	return {'items':items,'highlight':{'fg':fg,'bg':bg}}
 endfunction
 
 function! s:init_cfg() abort
@@ -66,37 +60,53 @@ function! s:init_cfg() abort
 			\ 'sep': get(g:, side.'_separator', side=='left'?'':''),
 			\ 'subsep': get(g:, side.'_subseparator', '|')
 			\ }
-		for n in s:sort_by_side(nums,side)
-			let sideCfg['section_'.n] = {}
+
+		for n in s:sort_side(copy(nums),side)
+			let sec = 'section_'.n
+			let sideCfg[sec] = {}
 			for status in ['active', 'inactive']
-				let sideCfg['section_'.n][status] = s:set_sec_vals('jostline_'.side.'_section_'.n.'_'.status)
+				let sideCfg[sec][status] = s:set_sec_vals(side,sec,status)
 			endfor
 		endfor
 		let s:sl_cfg[side] = sideCfg 
 	endfor
 endfunction
 
-function! s:get_git_stats()
-	let l:mtime = getftime('.git/index')
-	if s:git_branch_stats ==# '' || s:git_branch_stats_time != l:mtime
-		let l:branch = substitute(system('git rev-parse --abbrev-ref HEAD'), '\n$', '', '')
-		let l:stats = substitute(system('git diff --shortstat'), '\n$', '', '')
+let s:git_branch = ''
+let s:git_diff   = ''
 
-		let l:ins = matchstr(l:stats, '\d\+\s\+insertion')
-		let l:del = matchstr(l:stats, '\d\+\s\+deletion')
-		let l:plus = l:ins !=# '' ? '+' . matchstr(l:ins,'\d\+') : ''
-		let l:minus = l:del !=# '' ? '-' . matchstr(l:del,'\d\+') : ''
+function! s:refresh_git_stats() abort
+	let l:root = finddir('.git', expand('%:p:h').' ;')
+	if empty(l:root) | return | endif
+	let l:cwd = fnamemodify(l:root, ':h')
 
-		let l:parts = filter([' ' . l:branch, l:plus, l:minus], 'v:val !=# ""')
-		let s:git_branch_stats = join(l:parts, ' ')
-		let s:git_branch_stats_time = l:mtime
-	endif
-	return s:git_branch_stats
+	call job_start(['git','-C',l:cwd,'rev-parse','--abbrev-ref','HEAD'],{'out_cb':function('s:on_branch'),'out_mode':'nl'})
+	call job_start(['git','-C',l:cwd,'diff','--shortstat'],{'out_cb':function('s:on_diff'),'out_mode':'nl'})
 endfunction
 
-augroup UpdateGitBranchStats
-    autocmd!
-    autocmd BufWritePost * let s:git_branch_stats = '' | let s:git_branch_stats_time = 0
+function! s:on_branch(job, data) abort
+	if !empty(a:data) | let s:git_branch = a:data | endif
+endfunction
+
+function! s:on_diff(job, data) abort
+	if !empty(a:data)
+		let l:stats = a:data
+		let l:ins = matchstr(l:stats,'\d\+\s\+insertion')
+		let l:del = matchstr(l:stats,'\d\+\s\+deletion')
+		let l:plus = l:ins !=# '' ? '+'.matchstr(l:ins,'\d\+') : ''
+		let l:minus = l:del !=# '' ? '-'.matchstr(l:del,'\d\+') : ''
+		let s:git_diff = ' '.s:git_branch.' '.l:plus.' '.l:minus
+		redrawstatus
+	endif
+endfunction
+
+function! s:get_git_stats() abort
+	return s:git_diff
+endfunction
+
+augroup UpdateGitStats 
+	autocmd!
+	autocmd VimEnter,BufWritePost,BufReadPost * call s:refresh_git_stats()
 augroup END
 
 function! s:get_item_val(item)
@@ -109,57 +119,35 @@ function! s:get_item_val(item)
 		\ 'modified': &modified ? 'Modified [+]' : 'No Changes',
 		\ 'gitStats': s:get_git_stats()
 		\ }
-	return has_key(l:item_map,a:item) ? ' ' . l:item_map[a:item] . ' ' : ''
+	return get(l:item_map,a:item,'')
 endfunction
 
-function! s:get_sec_items(items) abort
-	return join(filter(map(copy(a:items),'s:get_item_val(v:val)'),'v:val !=""'),'')
+function! s:get_secs(map,status)
+	 return filter(keys(copy(a:map)), { _, sec -> sec =~# '^section_\d\+$'})
 endfunction
 
-function! s:get_secs(map,side,status)
- 	return s:sort_by_side(filter(keys(copy(a:map)), { _, sec -> sec =~# '^section_\d\+$' && 
-				\	!empty(a:map[sec][a:status].items) && a:map[sec][a:status].items[0] !=# ''})
-				\	,a:side)
+function! s:get_sec_items(arr)
+	return join(filter(map(a:arr,'s:get_item_val(v:val)'),'v:val!=""'),'')
 endfunction
 
-function! s:get_sl_side(side,status) abort
-	let l:cfg = get(deepcopy(s:sl_cfg), a:side,{})
-	return join(map(s:get_secs(l:cfg,a:side,a:status),{_,sec-> join(s:sort_by_side([
-		\			s:build_hl(sec.'_'.a:side.'_'.a:status, s:get_sec_items(get(l:cfg[sec][a:status],'items',{}))),
-		\			s:build_hl(sec.'_'.a:side.'_'.a:status.'_sep',l:cfg.sep)
-		\			],a:side),'')
-		\ 	}),'')
+function! s:sort_side(arr,side) abort
+	if a:side ==# 'right' | call reverse(a:arr) | else | call sort(a:arr) | endif | return a:arr
 endfunction
 
-function! s:sort_by_side(arr,side) abort
-	let l:arr = copy(a:arr)
-	if a:side ==# 'right' | call reverse(l:arr) | else | call sort(l:arr) | endif
-	return l:arr
-endfunction
-
-function! s:build_hl(hl,val) abort 
-	return a:val != '' ? join(['%#',a:hl,'#',a:val,'%*'],'') : ''
-endfunction
-
-function! s:init_hl() abort
-	for side in ['left', 'right']
-		let l:cfg = get(deepcopy(s:sl_cfg), side,{})
-		for status in ['active', 'inactive']
-			let l:secs = s:get_secs(l:cfg,side,status)
-			for i in range(0, len(l:secs) - 1)
-				let l:nextBG = s:get_hl(l:cfg,i + 1,l:secs,status,'bg')
-				let l:currFG = s:get_hl(l:cfg,i,l:secs,status,'fg')
-				let l:currBG = s:get_hl(l:cfg,i,l:secs,status,'bg')
-				let l:sec_hl = l:secs[i] . '_' . side . '_' . status
-				let l:sep_hl = l:sec_hl.'_sep'
-
-				execute 'highlight ' . l:sec_hl. ' guifg=' . l:currFG . ' guibg=' . l:currBG
-				execute 'highlight ' . l:sep_hl. ' guifg=' . l:currBG . ' guibg=' . l:nextBG
-			endfor
-		endfor
+function! s:init_sl_side(side,status) abort
+	let cfg = deepcopy(s:sl_cfg[a:side]) 
+	let sl_parts = []
+	for sec in s:sort_side(s:get_secs(l:cfg,a:status),a:side)
+		let data = cfg[sec][a:status]
+		let name = a:side.sec.a:status
+		let items = s:get_sec_items(data['items'])
+		call s:exec_hl(name,data['highlight'])
+		call add(sl_parts,'%#'.name.'#'.items.' %*'.'%#'.name.'#'.cfg.sep.' %*')
 	endfor
+	return join(sl_parts,'')
 endfunction
 
-function! s:get_hl(map,idx,secs,status,hl) abort
-	return a:idx < len(a:secs) ? a:map[a:secs[a:idx]][a:status]['highlight'][a:hl] : 'NONE'
+function! s:exec_hl(hl,map)
+	execute 'highlight '.a:hl.' guifg='.a:map['fg'].' guibg='.a:map['bg']
+	execute 'highlight '.a:hl.'sep'.' guifg='.a:map['bg'].' guibg='.a:map['fg']
 endfunction
