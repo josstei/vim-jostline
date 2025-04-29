@@ -61,7 +61,7 @@ function! s:init_cfg() abort
 			\ 'subsep': get(g:, side.'_subseparator', '|')
 			\ }
 
-		for n in s:sort_side(copy(nums),side)
+		for n in nums
 			let sec = 'section_'.n
 			let sideCfg[sec] = {}
 			for status in ['active', 'inactive']
@@ -109,8 +109,8 @@ augroup UpdateGitStats
 	autocmd VimEnter,BufWritePost,BufReadPost * call s:refresh_git_stats()
 augroup END
 
-function! s:get_item_val(item)
-	let l:item_map= {
+function! s:get_item_val(item) abort
+	let item_map= {
 		\ 'mode': get(s:mode_map, mode(), 'UNKNOWN MODE'),
 		\ 'fileName': expand('%:t') ==# '' ? '[No Name]' : expand('%:t'),
 		\ 'fileType': '%{&filetype}',
@@ -119,35 +119,50 @@ function! s:get_item_val(item)
 		\ 'modified': &modified ? 'Modified [+]' : 'No Changes',
 		\ 'gitStats': s:get_git_stats()
 		\ }
-	return get(l:item_map,a:item,'')
+	let item = get(item_map,a:item,'')
+	return item != '' ? ' '.item.' ' : item
 endfunction
 
-function! s:get_secs(map,status)
-	 return filter(keys(copy(a:map)), { _, sec -> sec =~# '^section_\d\+$'})
+function! s:get_secs(map,side) abort
+	 let secs = sort(filter(keys(copy(a:map)), { _, sec -> sec =~# '^section_\d\+$'}))
+	 if a:side ==# 'left' | call reverse(secs) | endif
+	 return secs
 endfunction
 
-function! s:get_sec_items(arr)
-	return join(filter(map(a:arr,'s:get_item_val(v:val)'),'v:val!=""'),'')
-endfunction
-
-function! s:sort_side(arr,side) abort
-	if a:side ==# 'right' | call reverse(a:arr) | else | call sort(a:arr) | endif | return a:arr
+function! s:get_items(map) abort
+	return join(filter(map(copy(a:map['items']),'s:get_item_val(v:val)'),'v:val!=""'),'')
 endfunction
 
 function! s:init_sl_side(side,status) abort
 	let cfg = deepcopy(s:sl_cfg[a:side]) 
-	let sl_parts = []
-	for sec in s:sort_side(s:get_secs(l:cfg,a:status),a:side)
+	let parts = []
+	let sep_bg = 'NONE' 
+
+	for sec in s:get_secs(l:cfg,a:side)
 		let data = cfg[sec][a:status]
 		let name = a:side.sec.a:status
-		let items = s:get_sec_items(data['items'])
-		call s:exec_hl(name,data['highlight'])
-		call add(sl_parts,'%#'.name.'#'.items.' %*'.'%#'.name.'#'.cfg.sep.' %*')
+		call s:add_sec(parts,a:side,[s:get_hl(name,s:get_items(data)),s:get_hl(name.'sep',cfg.sep)])
+		call s:exec_hl(name,data.highlight,sep_bg)
+		let sep_bg = data.highlight.bg
 	endfor
-	return join(sl_parts,'')
+	return s:set_sl_side(parts,a:side)
 endfunction
 
-function! s:exec_hl(hl,map)
-	execute 'highlight '.a:hl.' guifg='.a:map['fg'].' guibg='.a:map['bg']
-	execute 'highlight '.a:hl.'sep'.' guifg='.a:map['bg'].' guibg='.a:map['fg']
+function! s:set_sl_side(arr,side) abort
+	if a:side ==# 'left' | call reverse(a:arr) | endif
+	return join(a:arr,'')
+endfunction
+
+function! s:add_sec(parts,side,hl_arr) abort
+	if a:side ==# 'right' | call reverse(a:hl_arr) | endif
+	call add(a:parts,join(a:hl_arr,''))
+endfunction
+
+function! s:get_hl(name,val) abort
+	return '%#'.a:name.'#'.a:val.'%*'
+endfunction
+
+function! s:exec_hl(name,hl,sep_bg) abort
+	execute 'highlight '.a:name.' guifg='.a:hl['fg'].' guibg='.a:hl['bg']
+	execute 'highlight '.a:name.'sep'.' guifg='.a:hl['bg'].' guibg='.a:sep_bg
 endfunction
