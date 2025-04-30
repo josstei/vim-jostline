@@ -5,7 +5,6 @@ let s:mode_map = {
   \ 'o':'OPERATOR-PENDING','O':'OPERATOR PENDING','r':'REPEAT','a':'ARGUMENT'}
 
 let s:sl_cfg = {}
-
 let s:theme_map = {
   \ 'gruvbox': [['#ebdbb2','#3c3836'],['#d5c4a1','#504945'],['#fbf1c7','#665c54'],['#fbf1c7','#7c6f64']],
   \ 'tokyonight': [['#c0caf5','#1a1b26'],['#7aa2f7','#24283b'],['#9ece6a','#414868'],['#bb9af7','#1f2335']],
@@ -84,18 +83,17 @@ function! s:refresh_git_stats() abort
 endfunction
 
 function! s:on_branch(job,data) abort
-	if !empty(a:data) | let s:git_branch = a:data[0] | endif
+	if !empty(a:data) | let s:git_branch = a:data | endif
 endfunction
 
 function! s:on_diff(job,data) abort
 	if empty(a:data) | return | endif
-	let stats = a:data[0]
+	let stats = a:data
 	let ins = matchstr(stats,'\d\+\s\+insertion')
 	let del = matchstr(stats,'\d\+\s\+deletion')
 	let plus = ins !=# '' ? '+'.matchstr(ins,'\d\+') : ''
 	let minus = del !=# '' ? '-'.matchstr(del,'\d\+') : ''
-	let s:git_diff = ' '.s:git_branch.' '.plus.' '.minus
-	redrawstatus
+	let s:git_diff = '  '.s:git_branch.' '.plus.' '.minus
 endfunction
 
 function! s:get_git_stats() abort
@@ -103,8 +101,8 @@ function! s:get_git_stats() abort
 endfunction
 
 function! s:render_side(side,status) abort
-	let cfg = deepcopy(s:sl_cfg[a:side])
-	let secs = sort(filter(keys(cfg), { _, sec -> sec =~# '^section_\d\+$'}))
+	let cfg = deepcopy(s:sl_cfg[a:side]) 
+	let secs = sort(filter(keys(cfg), 'v:val =~# "^section_\\d\\+$"'))
 	call s:rev_arr(a:side,'left',secs)
 	let result = []
 	let prev_bg = 'NONE'
@@ -113,10 +111,10 @@ function! s:render_side(side,status) abort
 		let name = a:side.'_'.sec.'_'.a:status
 		let items = s:get_items(data)
 		if items != ''
-			let parts = [s:get_hl(name, items),s:get_hl(name.'sep', cfg.sep)]
-			call s:exec_hl(name, data.highlight, prev_bg)
+			let parts = [s:get_hl(name,items),s:get_hl(name.'sep',cfg.sep)] 
 			call s:rev_arr(a:side,'right',parts)
 			call add(result,join(parts,''))
+			call s:exec_hl(name, data.highlight, prev_bg)
 			let prev_bg = data.highlight.bg
 		endif
 	endfor
@@ -132,14 +130,14 @@ function! s:get_hl(name,val) abort
 	return '%#'.a:name.'#'.a:val.'%*'
 endfunction
 
-function! s:exec_hl(name,hl,sep_bg) abort
+function! s:exec_hl(name, hl, sep_bg) abort
 	execute printf('highlight %s guifg=%s guibg=%s', a:name, a:hl.fg, a:hl.bg)
 	execute printf('highlight %ssep guifg=%s guibg=%s', a:name, a:hl.bg, a:sep_bg)
 endfunction
 
 function! s:get_items(data) abort
 	let arr = map(copy(a:data.items), 's:get_item_val(v:val)')
-	return join(filter(arr, 'v:val != ""'), '')
+	return join(filter(arr, 'trim(v:val) != ""'), '')
 endfunction
 
 function! s:get_item_val(item) abort
@@ -152,6 +150,10 @@ function! s:get_item_val(item) abort
 		\ 'modified': &modified ? 'Modified [+]' : 'No Changes',
 		\ 'gitStats': s:get_git_stats()
 		\ }
-	let value = trim(get(m,a:item,''))
-	return value != '' ? ' '.value.' ' : '' 
+	return ' '.get(m,a:item,'').' '
 endfunction
+
+augroup jostline_colorscheme
+  autocmd!
+  autocmd ColorScheme * call s:init_theme()
+augroup END
