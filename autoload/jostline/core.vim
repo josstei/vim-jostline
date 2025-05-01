@@ -10,7 +10,7 @@ function! jostline#core#get_cfg()
 	return s:sl_cfg
 endfunction
 
-function! jostline#core#set_cfg(side, cfg)
+function! s:set_cfg(side, cfg)
 	let s:sl_cfg[a:side] = a:cfg
 endfunction
 
@@ -32,7 +32,7 @@ function! jostline#core#init_cfg() abort
 				let cfg[sec][status] = {'items': items,'highlight': {'fg': get(hl,'fg','NONE'),'bg': get(hl,'bg','NONE')}}
 			endfor
 		endfor
-		call jostline#core#set_cfg(side, cfg)
+		call s:set_cfg(side, cfg)
 	endfor
 endfunction
 
