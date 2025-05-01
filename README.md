@@ -93,7 +93,7 @@ g:jostline_<side>_section_<number>_<status>
 - `<number>`: order of sections (`1`, `2`, ...)
 - `<status>`: `active` (focused window) or `inactive` (unfocused window)
 
-#### Items Available:
+#### Items Available - More Coming Soon!:
 
 - `mode`: Vim mode (e.g., NORMAL, INSERT)
 - `fileName`: Name of the current file
