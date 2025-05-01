@@ -137,14 +137,13 @@ vim-jostline automatically recognizes and matches colors with popular themes:
 
 - **Dark Themes**:
   - gruvbox
-  - tokyonight
   - nord
   - onedark
   - dracula
   - solarized_dark
   - monokai
   - everforest
-  - catppuccin (variants: mocha, latte, frappe, macchiato)
+  - catppuccin ( mocha, latte, frappe, macchiato)
 
 - **Light Themes**:
   - papercolor_light
