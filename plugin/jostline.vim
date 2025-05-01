@@ -16,6 +16,10 @@ let s:theme_map = {
   \ 'everforest': [['#d3c6aa','#2f383e'],['#a7c080','#374145'],['#e67e80','#4d555b'],['#83c092','#2f383e']],
   \ 'monokai': [['#f8f8f2','#272822'],['#a6e22e','#3e3d32'],['#fd971f','#49483e'],['#f92672','#383830']],
   \ 'papercolor_light': [['#000000','#eeeeee'],['#444444','#d7d7d7'],['#005f87','#ffffff'],['#870000','#eeeeee']],
+	\ 'catppuccin_mocha': [['#cdd6f4','#1e1e2e'],['#f38ba8','#313244'],['#a6e3a1','#45475a'],['#89b4fa','#1e1e2e']],
+  \ 'catppuccin_latte': [['#4c4f69','#eff1f5'],['#dc8a78','#e6e9ef'],['#40a02b','#ccd0da'],['#1e66f5','#eff1f5']],
+  \ 'catppuccin_frappe': [['#c6d0f5','#303446'],['#e78284','#3b3f51'],['#a6d189','#51576d'],['#8caaee','#303446']],
+  \ 'catppuccin_macchiato': [['#cad3f5','#24273a'],['#ed8796','#363a4f'],['#a6da95','#494d64'],['#8aadf4','#24273a']],
 \}
 
 function! jostline#init() abort
@@ -77,6 +81,10 @@ endfunction
 augroup jostline_git
 	autocmd!
 	autocmd VimEnter,BufWritePost,BufReadPost * call s:refresh_git_stats()
+augroup END
+augroup jostline_init
+	autocmd!
+	autocmd VimEnter * call OnVimEnter() | call jostline#init()
 augroup END
 
 let s:git_branch = ''
