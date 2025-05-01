@@ -5,10 +5,8 @@ function! jostline#git#refresh_git_stats() abort
 	let root = finddir('.git', expand('%:p:h').' ;')
 	if empty(root) | return | endif
 	let cwd = fnamemodify(root, ':h')
-	call job_start(['git','-C',cwd,'rev-parse','--abbrev-ref','HEAD'],
-		\ {'out_cb': function('s:on_branch'), 'out_mode':'nl'})
-	call job_start(['git','-C',cwd,'diff','--shortstat'],
-		\ {'out_cb': function('s:on_diff'), 'out_mode':'nl'})
+	call job_start(['git','-C',cwd,'rev-parse','--abbrev-ref','HEAD'],{'out_cb': function('s:on_branch'), 'out_mode':'nl'})
+	call job_start(['git','-C',cwd,'diff','--shortstat'],{'out_cb': function('s:on_diff'), 'out_mode':'nl'})
 endfunction
 
 function! s:on_branch(job, data) abort

@@ -38,7 +38,7 @@ function! jostline#theme#init_theme() abort
 			let gap_fg = 'NONE'
 			let s:gap_bg = cfg['left']['section_1'][status].highlight.bg
 			let gap_name = 'jostline_gap_'.status
-			execute printf('highlight %s guifg=%s guibg=%s', gap_name, gap_fg, s:gap_bg)
+			execute printf('highlight %s guifg=%s guibg=%s gui=bold cterm=bold', gap_name, gap_fg, s:gap_bg)
 		endif
 	endfor
 endfunction

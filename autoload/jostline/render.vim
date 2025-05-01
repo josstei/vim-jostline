@@ -42,8 +42,8 @@ function! s:get_hl(name, val) abort
 endfunction
 
 function! s:exec_hl(name, hl, sep_bg) abort
-	execute printf('highlight %s guifg=%s guibg=%s', a:name, a:hl.fg, a:hl.bg)
-	execute printf('highlight %ssep guifg=%s guibg=%s', a:name, a:hl.bg, a:sep_bg)
+	execute printf('highlight %s guifg=%s guibg=%s gui=bold cterm=bold', a:name, a:hl.fg, a:hl.bg)
+	execute printf('highlight %ssep guifg=%s guibg=%s gui=bold cterm=bold', a:name, a:hl.bg, a:sep_bg)
 endfunction
 
 function! s:get_items(data) abort
