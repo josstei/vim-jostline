@@ -1,68 +1,153 @@
+
 # vim-jostline
 
-![Status](https://img.shields.io/badge/status-in_development-orange)
-![License](https://img.shields.io/badge/license-MIT-blue)
-
-**vim-jostline** is a lightweight, easy-to-setup statusline plugin for Vim, designed for quick integration and flexible customization. Built with simplicity in mind, it aims to provide a clean experience while remaining flexible for power users.
+A fast, lightweight, and highly customizable statusline plugin for Vim (compatible with Vim 8+ and Vim 9). vim-jostline enhances your Vim experience by providing dynamic, informative, and visually appealing statusline updates.
 
 ---
 
-## 🚧 Under Development
+## 🚀 Key Features
 
-This plugin is currently under active development. Breaking changes and instability should be expected until a stable release is published.
-
-Use with caution if you require a production-stable environment.
-
----
-
-## ✨ Features
-
-- ⚡ **Lightweight** – No unnecessary bloat  
-- 🎨 **Clean Aesthetic** – Focused and modern  
-- 🔧 **Simple Setup** – Fast to get started, easy to configure  
-- 💡 **Pure Vimscript** – No external dependencies, great compatibility  
+- ✅ **Automatic setup**: Initializes automatically on startup.
+- ✅ **Git integration**: Displays current branch and file diff stats (`+added -removed`).
+- ✅ **Dynamic theming**: Matches your Vim colorscheme automatically.
+- ✅ **Customizable layout**: Easily configure the order and content of your statusline sections.
+- ✅ **No dependencies**: Pure Vimscript implementation for fast performance.
 
 ---
 
-## 🔧 Installation
+## 📥 Installation
 
-### Using [vim-plug](https://github.com/junegunn/vim-plug)
+### Using vim-plug (Recommended)
+
+Add to your `.vimrc`:
 
 ```vim
+call plug#begin('~/.vim/plugged')
 Plug 'josstei/vim-jostline'
+call plug#end()
 ```
 
-Then reload and install:
+Then reload Vim and run:
 
 ```vim
-:source %
 :PlugInstall
 ```
----
 
-Custom components and themes coming soon!
+### Using Pathogen
 
----
+Clone directly into your Vim bundles:
 
-## 🗺️ Roadmap / TODO
-
-- [ ] Finish separator highlighting  
-- [ ] Add sub-separator support  
-- [ ] Improve error handling  
-- [ ] User configured sections and separators
-- [ ] Validate user config mappings more robustly  
-- [ ] Custom components
-- [ ] Bundled Themes
+```bash
+cd ~/.vim/bundle
+git clone https://github.com/josstei/vim-jostline.git
+```
 
 ---
 
-## ⚠️ Disclaimer
+## 📋 Setup Requirements
 
-**vim-jostline** is not yet stable. Frequent updates and potential breaking changes may occur until version 1.0 is released.
+For optimal experience, ensure your Vim supports true colors:
+
+```vim
+if has('termguicolors')
+  set termguicolors
+endif
+```
 
 ---
 
-## 📄 License
+## ⚙️ Customization Guide
 
-This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+vim-jostline is fully customizable via global Vim variables within your `.vimrc`
 
+### Separators
+
+You can customize visual separators for clarity and aesthetics:
+
+| Variable              | Default | Description                |
+|-----------------------|---------|----------------------------|
+| `g:left_separator`    | ``     | Separator on the left side |
+| `g:right_separator`   | ``     | Separator on the right side|
+| `g:left_subseparator` | `|`     | Subsection separator (left)|
+| `g:right_subseparator`| `|`     | Subsection separator (right)|
+
+Example:
+
+```vim
+let g:left_separator       = '▶'
+let g:right_separator      = '◀'
+let g:left_subseparator    = '|'
+let g:right_subseparator   = '|'
+```
+
+### Statusline Sections
+
+Sections are organized using global variables with the format:
+
+```vim
+g:jostline_<side>_section_<number>_<status>
+```
+
+- `<side>`: `left` or `right`
+- `<number>`: order of sections (`1`, `2`, ...)
+- `<status>`: `active` (focused window) or `inactive` (unfocused window)
+
+#### Items Available:
+
+- `mode`: Vim mode (e.g., NORMAL, INSERT)
+- `fileName`: Name of the current file
+- `fileType`: File type (`&filetype`)
+- `filePath`: Path of the current file
+- `windowNumber`: Window number in Vim
+- `modified`: Shows `[+]` if the file has unsaved changes
+- `gitStats`: Current Git branch and diff stats
+
+Example Configuration:
+
+```vim
+" Left Section
+let g:jostline_left_section_1_active = {
+  \ 'items': ['mode', 'fileName', 'fileType'],
+  \ 'highlight': {'fg':'#c0caf5','bg':'#1a1b26'}
+  \}
+
+let g:jostline_left_section_1_inactive = {
+  \ 'items': ['fileName'],
+  \ 'highlight': {'fg':'#d8dee9','bg':'#434c5e'}
+  \}
+
+" Right Section
+let g:jostline_right_section_1_active = {
+  \ 'items': ['modified', 'gitStats'],
+  \ 'highlight': {'fg':'#7aa2f7','bg':'#24283b'}
+  \}
+
+let g:jostline_right_section_1_inactive = {
+  \ 'items': ['modified'],
+  \ 'highlight': {'fg':'#5b6268','bg':'#282c34'}
+  \}
+```
+
+---
+
+## 🎨 Built-in Theme Support
+
+vim-jostline automatically recognizes and matches colors with popular themes:
+
+- **Dark Themes**:
+  - gruvbox
+  - tokyonight
+  - nord
+  - onedark
+  - dracula
+  - solarized_dark
+  - monokai
+  - everforest
+  - catppuccin (variants: mocha, latte, frappe, macchiato)
+
+- **Light Themes**:
+  - papercolor_light
+
+## 📝 License
+
+This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for full details.
