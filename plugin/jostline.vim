@@ -25,7 +25,7 @@ endfunction
 
 function! jostline#build() abort
 	let status = win_getid() == g:statusline_winid ? 'active' : 'inactive'
-	return s:render_side('left',status) . '%=' . s:render_side('right',status)
+	return s:render_side('left',status) . s:get_hl('jostline_gap_'.status, '%=') . s:render_side('right',status)
 endfunction
 
 function! s:init_cfg() abort
@@ -63,6 +63,14 @@ function! s:init_theme() abort
 				endfor
 			endif
 		endfor
+	endfor
+	for status in ['active','inactive']
+		if has_key(s:sl_cfg['left'], 'section_1')
+			let gap_fg = 'NONE'
+			let gap_bg = s:sl_cfg['left']['section_1'][status].highlight.bg
+			let gap_name = 'jostline_gap_'.status
+			execute printf('highlight %s guifg=%s guibg=%s', gap_name, gap_fg, gap_bg)
+		endif
 	endfor
 endfunction
 
@@ -106,7 +114,8 @@ function! s:render_side(side,status) abort
 	call s:rev_arr(a:side,'left',secs)
 	let result = []
 	let prev_bg = 'NONE'
-	for sec in secs
+	let loop_secs = a:side ==# 'right' ? reverse(copy(secs)) : secs
+	for sec in loop_secs
 		let data = cfg[sec][a:status]
 		let name = a:side.'_'.sec.'_'.a:status
 		let items = s:get_items(data)
