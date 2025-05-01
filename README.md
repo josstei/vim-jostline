@@ -107,26 +107,21 @@ Example Configuration:
 
 ```vim
 " Left Section
-let g:jostline_left_section_1_active = {
-  \ 'items': ['mode', 'fileName', 'fileType'],
-  \ 'highlight': {'fg':'#c0caf5','bg':'#1a1b26'}
-  \}
-
-let g:jostline_left_section_1_inactive = {
-  \ 'items': ['fileName'],
-  \ 'highlight': {'fg':'#d8dee9','bg':'#434c5e'}
-  \}
+let g:jostline_left_section_1_active = { 'items': ['windowNumber'], 'highlight': {'fg': '#000000','bg': '#c678dd'}}
+let g:jostline_left_section_2_active = { 'items': ['mode'], 'highlight': {'fg': '#ffffff','bg': '#4b2a55'}}
+let g:jostline_left_section_3_active = { 'items': ['gitStats'], 'highlight': {'fg': '#ffffff','bg': '#333333'}}
+let g:jostline_left_section_4_active = { 'items': ['fileName'], 'highlight': {'fg': '#000000','bg': '#c678dd'}}
 
 " Right Section
-let g:jostline_right_section_1_active = {
-  \ 'items': ['modified', 'gitStats'],
-  \ 'highlight': {'fg':'#7aa2f7','bg':'#24283b'}
-  \}
+let g:jostline_right_section_1_active = { 'items': ['fileType'], 'highlight': {'fg': '#000000','bg': '#c678dd'}}
+let g:jostline_right_section_2_active = { 'items': ['modified'], 'highlight': {'fg': '#ffffff','bg': '#4b2a55'}}
+let g:jostline_right_section_2_active = { 'items': ['modified'], 'highlight': {'fg': '#ffffff','bg': '#4b2a55'}}
 
-let g:jostline_right_section_1_inactive = {
-  \ 'items': ['modified'],
-  \ 'highlight': {'fg':'#5b6268','bg':'#282c34'}
-  \}
+" Left Section
+let g:jostline_left_section_1_active = {'items': ['mode', 'fileName', 'fileType'],'highlight': {'fg':'#c0caf5','bg':'#1a1b26'}}
+let g:jostline_left_section_1_inactive = {'items': ['fileName'],'highlight': {'fg':'#d8dee9','bg':'#434c5e'}}
+
+
 ```
 
 ---
