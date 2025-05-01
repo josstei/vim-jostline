@@ -67,9 +67,9 @@ function! s:init_theme() abort
 	for status in ['active','inactive']
 		if has_key(s:sl_cfg['left'], 'section_1')
 			let gap_fg = 'NONE'
-			let gap_bg = s:sl_cfg['left']['section_1'][status].highlight.bg
+			let s:gap_bg = s:sl_cfg['left']['section_1'][status].highlight.bg
 			let gap_name = 'jostline_gap_'.status
-			execute printf('highlight %s guifg=%s guibg=%s', gap_name, gap_fg, gap_bg)
+			execute printf('highlight %s guifg=%s guibg=%s', gap_name, gap_fg, s:gap_bg)
 		endif
 	endfor
 endfunction
@@ -113,7 +113,7 @@ function! s:render_side(side,status) abort
 	let secs = sort(filter(keys(cfg), 'v:val =~# "^section_\\d\\+$"'))
 	call s:rev_arr(a:side,'left',secs)
 	let result = []
-	let prev_bg = 'NONE'
+	let prev_bg = s:gap_bg
 	let loop_secs = a:side ==# 'right' ? reverse(copy(secs)) : secs
 	for sec in loop_secs
 		let data = cfg[sec][a:status]
