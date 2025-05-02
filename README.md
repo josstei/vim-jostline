@@ -143,13 +143,6 @@ let g:jostline_right_subseparator = 'bar'
 You can use the following **keywords** for both separators and sub separators.  
 *(The plugin automatically picks the correct symbol for the left or right side based on where it's used.)*
 
-| **Keyword**        | **Resolved Symbols (Left / Right)** | **Description**                                 | **Font Requirement**             |
-|--------------------|-------------------------------------|-------------------------------------------------|----------------------------------|
-| `rounded_thin`     | `` / ``                            | Thin rounded separators                         | Powerline/Nerd Font required     |
-| `doublebar`        | `||` / `||`                          | Double bar                                      | Works with any font              |
-| `equals`           | `=` / `=`                            | Equals sign                                     | Works with any font              |
-
-
 `rounded` *(Powerline/Nerd Font required)*
 
 ![Example of triangle](assets/jostline_rounded.png)
