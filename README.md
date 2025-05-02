@@ -146,7 +146,6 @@ You can use the following **keywords** for both separators and sub separators.
 | **Keyword**        | **Resolved Symbols (Left / Right)** | **Description**                                 | **Font Requirement**             |
 |--------------------|-------------------------------------|-------------------------------------------------|----------------------------------|
 | `rounded_thin`     | `` / ``                            | Thin rounded separators                         | Powerline/Nerd Font required     |
-| `arrow`            | `➔` / `←`                            | Unicode arrows                                  | Works with any font              |
 | `bar`              | `|` / `|`                            | Simple bar                                      | Works with any font              |
 | `doublebar`        | `||` / `||`                          | Double bar                                      | Works with any font              |
 | `dot`              | `·` / `·`                            | Middle dot (default sub separator)              | Works with any font              |
