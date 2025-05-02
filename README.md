@@ -184,7 +184,7 @@ You can use the following **keywords** for both separators and sub separators.
 
 - **Fallback:**  
   If you don't set any separator, Jostline will use its built-in defaults:
-  - **Separator:** `rounded`
+  - **Separator:** `bar`
   - **Sub Separator:** `dot`
 
 - **Direct Symbols:**  
