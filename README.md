@@ -168,6 +168,10 @@ You can use the following **keywords** for both separators and sub separators.
 
 ![Example of triangle](assets/jostline_arrow.png)
 
+`bar`
+
+![Example of triangle](assets/jostline_bar.png)
+
 ---
 
 ### 📝 Notes
