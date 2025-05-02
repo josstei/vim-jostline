@@ -145,10 +145,7 @@ You can use the following **keywords** for both separators and sub separators.
 
 | **Keyword**        | **Resolved Symbols (Left / Right)** | **Description**                                 | **Font Requirement**             |
 |--------------------|-------------------------------------|-------------------------------------------------|----------------------------------|
-| `rounded`          | `` / ``                            | Rounded separators (default)                    | Powerline/Nerd Font required     |
 | `rounded_thin`     | `` / ``                            | Thin rounded separators                         | Powerline/Nerd Font required     |
-| `triangle`         | `` / ``                            | Triangle shape                                  | Powerline/Nerd Font required     |
-| `triangle_bold`    | `` / ``                            | Bold triangle                                   | Nerd Font required               |
 | `arrow`            | `➔` / `←`                            | Unicode arrows                                  | Works with any font              |
 | `bar`              | `|` / `|`                            | Simple bar                                      | Works with any font              |
 | `doublebar`        | `||` / `||`                          | Double bar                                      | Works with any font              |
@@ -167,6 +164,10 @@ You can use the following **keywords** for both separators and sub separators.
 `triangle_bold` *(Powerline/Nerd Font required)*
 
 ![Example of triangle](assets/jostline_triangle_bold.png)
+
+`arrow`
+
+![Example of triangle](assets/jostline_arrow.png)
 
 ---
 
