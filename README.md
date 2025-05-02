@@ -155,6 +155,13 @@ You can use the following **keywords** for both separators and sub separators.
 | `dot`              | `·` / `·`                            | Middle dot (default sub separator)              | Works with any font              |
 | `equals`           | `=` / `=`                            | Equals sign                                     | Works with any font              |
 
+
+`rounded`
+
+![Example of triangle](assets/jostline_rounded.png)
+
+`triangle`
+
 ![Example of triangle](assets/jostline_triangle.png)
 ---
 
