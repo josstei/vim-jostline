@@ -243,13 +243,15 @@ vim-jostline automatically recognizes and matches colors with popular themes:
   - nord
   - onedark
   - dracula
-  - solarized_dark
+  - solarized
   - monokai
   - everforest
   - catppuccin ( mocha, latte, frappe, macchiato)
+	- PaperColor
 
 - **Light Themes**:
-  - papercolor_light
+  - PaperColor 
+  - solarized
 
 ## 📝 License
 
