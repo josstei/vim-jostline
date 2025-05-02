@@ -247,7 +247,7 @@ vim-jostline automatically recognizes and matches colors with popular themes:
   - monokai
   - everforest
   - catppuccin ( mocha, latte, frappe, macchiato)
-	- PaperColor
+  - PaperColor
 
 - **Light Themes**:
   - PaperColor 
