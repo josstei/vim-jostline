@@ -156,13 +156,18 @@ You can use the following **keywords** for both separators and sub separators.
 | `equals`           | `=` / `=`                            | Equals sign                                     | Works with any font              |
 
 
-`rounded`
+`rounded` *(Powerline/Nerd Font required)*
 
 ![Example of triangle](assets/jostline_rounded.png)
 
-`triangle`
+`triangle` *(Powerline/Nerd Font required)*
 
 ![Example of triangle](assets/jostline_triangle.png)
+
+`triangle_bold` *(Powerline/Nerd Font required)*
+
+![Example of triangle](assets/jostline_triangle_bold.png)
+
 ---
 
 ### 📝 Notes
