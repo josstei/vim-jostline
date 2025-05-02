@@ -61,25 +61,123 @@ endif
 
 vim-jostline is fully customizable via global Vim variables within your `.vimrc`
 
-### Separators
+### 🔧 Separator and Sub Separator Configuration
 
-You can customize visual separators for clarity and aesthetics:
+Jostline allows you to fully customize the **separators** and **sub separators** for both the **left** and **right** sides of your statusline.
 
-| Variable              | Default | Description                |
-|-----------------------|---------|----------------------------|
-| `g:left_separator`    | ``     | Separator on the left side |
-| `g:right_separator`   | ``     | Separator on the right side|
-| `g:left_subseparator` | `|`     | Subsection separator (left)|
-| `g:right_subseparator`| `|`     | Subsection separator (right)|
+---
 
-Example:
+#### ✅ How to Set Separators and Sub Separators
+
+You can configure **global** or **per-side** separators.
+
+#### 1️⃣ Global (applies to both left and right)
+
+Set this to apply the same separator everywhere:
 
 ```vim
-let g:left_separator       = '▶'
-let g:right_separator      = '◀'
-let g:left_subseparator    = '|'
-let g:right_subseparator   = '|'
+let g:jostline_separator = 'triangle'
+let g:jostline_subseparator = 'bar'
+
 ```
+
+#### 2️⃣ Per-Side
+
+Set each side independently:
+
+```vim
+let g:jostline_left_separator = 'rounded'
+let g:jostline_right_separator = 'arrow'
+
+let g:jostline_left_subseparator = 'dot'
+let g:jostline_right_subseparator = 'bar'
+```
+
+#### 3️⃣ Mixed (global + side override)
+
+Example: global default but override just one side.
+
+```vim
+let g:jostline_separator = 'triangle'
+let g:jostline_right_separator = 'bar'
+
+let g:jostline_subseparator = 'dot'
+let g:jostline_right_subseparator = 'bar'
+```
+
+---
+
+### 🔄 Resolution Order
+
+#### Separators
+
+| **Variable**                              | **Priority**             |
+|-------------------------------------------|--------------------------|
+| `g:jostline_left_separator`               | Highest (per-side)       |
+| `g:jostline_right_separator`              | Highest (per-side)       |
+| `g:jostline_separator`                    | Global fallback          |
+| *(nothing set)*                           | Uses built-in default    |
+
+### Sub Separators
+
+| **Variable**                              | **Priority**             |
+|-------------------------------------------|--------------------------|
+| `g:jostline_left_subseparator`            | Highest (per-side)       |
+| `g:jostline_right_subseparator`           | Highest (per-side)       |
+| `g:jostline_subseparator`                 | Global fallback          |
+| *(nothing set)*                           | Uses built-in default    |
+
+---
+
+### 🛠 Built-in Defaults
+
+| **Type**          | **Default Keyword** | **Resolved Symbols (Left / Right)** |
+|-------------------|---------------------|-------------------------------------|
+| Separator         | `rounded`           | `` / ``                            |
+| Sub Separator     | `dot`               | `·` / `·`                            |
+
+---
+
+### ✨ Available Separator Keywords
+
+You can use the following **keywords** for both separators and sub separators.  
+*(The plugin automatically picks the correct symbol for the left or right side based on where it's used.)*
+
+| **Keyword**        | **Resolved Symbols (Left / Right)** | **Description**                                 | **Font Requirement**             |
+|--------------------|-------------------------------------|-------------------------------------------------|----------------------------------|
+| `rounded`          | `` / ``                            | Rounded separators (default)                    | Powerline/Nerd Font required     |
+| `rounded_thin`     | `` / ``                            | Thin rounded separators                         | Powerline/Nerd Font required     |
+| `triangle`         | `` / ``                            | Triangle shape                                  | Powerline/Nerd Font required     |
+| `triangle_bold`    | `` / ``                            | Bold triangle                                   | Nerd Font required               |
+| `arrow`            | `➔` / `←`                            | Unicode arrows                                  | Works with any font              |
+| `bar`              | `|` / `|`                            | Simple bar                                      | Works with any font              |
+| `doublebar`        | `||` / `||`                          | Double bar                                      | Works with any font              |
+| `dot`              | `·` / `·`                            | Middle dot (default sub separator)              | Works with any font              |
+| `equals`           | `=` / `=`                            | Equals sign                                     | Works with any font              |
+
+---
+
+### 📝 Notes
+
+- **Powerline/Nerd Font symbols:**  
+  To use separators like `rounded`, `triangle`, or `triangle_bold`, you'll need a **Powerline-patched or Nerd Font.**  
+  Popular options include:
+  - [FiraCode Nerd Font](https://github.com/ryanoasis/nerd-fonts)
+  - [Hack Nerd Font](https://github.com/ryanoasis/nerd-fonts)
+  - [JetBrains Mono Powerline](https://www.jetbrains.com/lp/mono/)
+
+- **Fallback:**  
+  If you don't set any separator, Jostline will use its built-in defaults:
+  - **Separator:** `rounded`
+  - **Sub Separator:** `dot`
+
+- **Direct Symbols:**  
+  You can also set the variable to a **custom symbol** instead of a keyword:
+
+  ```vim
+  let g:jostline_separator = '>'
+  let g:jostline_subseparator = '/'
+  ```
 
 ### Statusline Sections
 
