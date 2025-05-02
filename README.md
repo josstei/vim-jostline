@@ -131,10 +131,14 @@ let g:jostline_right_subseparator = 'bar'
 
 ### 🛠 Built-in Defaults
 
-| **Type**          | **Default Keyword** | **Resolved Symbols (Left / Right)** |
-|-------------------|---------------------|-------------------------------------|
-| Separator         | `rounded`           | `` / ``                            |
-| Sub Separator     | `dot`               | `·` / `·`                            |
+ Separator - `bar`
+
+![Example of triangle](assets/jostline_bar.png)
+
+
+ Sub Separator - `dot`
+
+![Example of triangle](assets/jostline_sub_dot.png)
 
 ---
 
