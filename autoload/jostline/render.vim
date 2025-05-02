@@ -17,7 +17,7 @@ function! s:render_side(side, status) abort
 	for sec in loop_secs
 		let data = cfg[sec][a:status]
 		let name = a:side.'_'.sec.'_'.a:status
-		let items = s:get_items(data)
+		let items = s:get_items(data,cfg.subsep)
 		if items != ''
 			let parts = [s:get_hl(name, items),
 			\ s:get_hl(name.'sep', cfg.sep)]
@@ -46,9 +46,11 @@ function! s:exec_hl(name, hl, sep_bg) abort
 	execute printf('highlight %ssep guifg=%s guibg=%s gui=bold cterm=bold', a:name, a:hl.bg, a:sep_bg)
 endfunction
 
-function! s:get_items(data) abort
+function! s:get_items(data,subsep) abort
 	let arr = map(copy(a:data.items), 's:get_item_val(v:val)')
-	return join(filter(arr, 'trim(v:val) != ""'), '')
+	let result = filter(arr, 'trim(v:val) != ""')
+	let l:subsep = len(result) > 1 ? a:subsep : ''
+	return join(result, l:subsep)
 endfunction
 
 function! s:get_item_val(item) abort
