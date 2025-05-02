@@ -4,7 +4,7 @@ let s:mode_map = {
 	\ 'N':'INSERT NORMAL','N:':'NORMAL EX','iN':'INSERT NORMAL','p':'PREVIEW','l':'LITERAL','R?':'REPLACE MODE',
 	\ 'o':'OPERATOR-PENDING','O':'OPERATOR PENDING','r':'REPEAT','a':'ARGUMENT'}
 
-let s:separator_default = 'rounded'
+let s:separator_default = 'bar'
 let s:subseparator_default = 'dot'
 let s:separator_map = {
       \ 'rounded_left':       '', 
