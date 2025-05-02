@@ -147,7 +147,6 @@ You can use the following **keywords** for both separators and sub separators.
 |--------------------|-------------------------------------|-------------------------------------------------|----------------------------------|
 | `rounded_thin`     | `` / ``                            | Thin rounded separators                         | Powerline/Nerd Font required     |
 | `doublebar`        | `||` / `||`                          | Double bar                                      | Works with any font              |
-| `dot`              | `·` / `·`                            | Middle dot (default sub separator)              | Works with any font              |
 | `equals`           | `=` / `=`                            | Equals sign                                     | Works with any font              |
 
 
