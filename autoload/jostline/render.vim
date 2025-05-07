@@ -53,16 +53,23 @@ function! s:get_items(data,subsep) abort
 	return join(result, l:subsep)
 endfunction
 
+" autoload/jostline/render.vim
 function! s:get_item_val(item) abort
 	let m = {
-		\ 'mode': get(jostline#core#get_mode_map(), mode(), 'UNKNOWN'),
-		\ 'fileName': expand('%:t') ==# '' ? '[No Name]' : expand('%:t'),
-		\ 'fileType': '%{&filetype}',
-		\ 'filePath': expand('%:p:h'),
-		\ 'windowNumber': '%{winnr()}',
-		\ 'modified': &modified ? 'Modified [+]' : 'No Changes',
-		\ 'gitStats': jostline#git#get_git_stats()
+		\ 'mode':        get(jostline#core#get_mode_map(), mode(), 'UNKNOWN'),
+		\ 'fileName':    expand('%:t') ==# '' ? '[No Name]' : expand('%:t'),
+		\ 'fileType':    &filetype,
+		\ 'filePath':    expand('%:p:h'),
+		\ 'windowNumber':'%{winnr()}',
+		\ 'readonly':    &readonly     ? '🔒' : '',
+		\ 'modifiedIcon':&modified     ? '●' : '',
+		\ 'cursorPos':   printf('%d:%d', line('.'), col('.')),
+		\ 'percentage':  printf('%d%%', (line('.') * 100) / max([1, line('$')])),
+		\ 'fileEncoding':&fileencoding,
+		\ 'fileFormat':  &fileformat,
+		\ 'lineCount':   line('$'),
+		\ 'gitStats':    jostline#git#get_git_stats(),
 		\ }
-	return ' '.get(m, a:item, '').' '
+	return (has_key(m, a:item) ? ' '.m[a:item] : '')
 endfunction
 
