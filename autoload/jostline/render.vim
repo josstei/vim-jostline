@@ -62,7 +62,7 @@ function! s:get_item_val(item) abort
 		\ 'filePath':    expand('%:p:h'),
 		\ 'windowNumber':'%{winnr()}',
 		\ 'readonly':    &readonly     ? '🔒' : '',
-		\ 'modifiedIcon':&modified     ? '●' : '',
+		\ 'modified':&modified     ? 'Modified' : '',
 		\ 'cursorPos':   printf('%d:%d', line('.'), col('.')),
 		\ 'percentage':  printf('%d%%', (line('.') * 100) / max([1, line('$')])),
 		\ 'fileEncoding':&fileencoding,
