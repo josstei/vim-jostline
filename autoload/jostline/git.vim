@@ -59,12 +59,15 @@ function! s:on_err(job, data, event) abort
 endfunction
 
 function! s:get_job_data(args) abort
-  if len(a:args) == 3
-    return a:args[1][0]
-  elseif len(a:args) == 2
-    return a:args[1]
-  else
-    return []
-  endif
+    try
+        if len(a:args) == 3
+            return a:args[1][0]
+        elseif len(a:args) == 2
+            return a:args[1]
+        else
+            return []
+        endif
+    catch
+    endtry
 endfunction
 
